@@ -173,7 +173,11 @@ verify_service() {
 apply_sysctl() {
     local src="${1:-$(script_dir)/configs/sysctl-routedns-ingress.conf}"
     install_file "${src}" "/etc/sysctl.d/99-routedns-ingress.conf"
-    sysctl --system >/dev/null 2>&1 || sysctl -p /etc/sysctl.d/99-routedns-ingress.conf
+    if command -v sysctl &>/dev/null; then
+        sysctl --system >/dev/null 2>&1 || sysctl -p /etc/sysctl.d/99-routedns-ingress.conf
+    else
+        warn "sysctl not found; config installed to /etc/sysctl.d/99-routedns-ingress.conf (apply after reboot or install procps)."
+    fi
     info "Applied sysctl tuning."
 }
 

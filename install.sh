@@ -138,7 +138,7 @@ main() {
 
     pkg_update
     case "${PKG_MANAGER}" in
-        apt) pkg_install haproxy keepalived socat rsyslog logrotate ;;
+        apt) pkg_install haproxy keepalived socat rsyslog logrotate procps ;;
         dnf|yum) pkg_install haproxy keepalived socat rsyslog logrotate ;;
     esac
 
