@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+# routedns-ingress — install Keepalived configuration
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=scripts/lib.sh
+source "${ROOT}/scripts/lib.sh"
+
+KEEPALIVED_ROLE="${KEEPALIVED_ROLE:-}"
+
+usage() {
+    cat <<EOF
+Usage: KEEPALIVED_ROLE=master|backup ${0##*/}
+
+Environment:
+  KEEPALIVED_ROLE   Required. Set to 'master' or 'backup'.
+EOF
+    exit 1
+}
+
+install_keepalived() {
+    require_root
+    detect_os
+
+    [[ -n "${KEEPALIVED_ROLE}" ]] || usage
+    case "${KEEPALIVED_ROLE}" in
+        master|backup) ;;
+        *) die "KEEPALIVED_ROLE must be 'master' or 'backup', got: ${KEEPALIVED_ROLE}" ;;
+    esac
+
+    info "Installing Keepalived (${KEEPALIVED_ROLE})..."
+    pkg_update
+    pkg_install keepalived
+
+    install_scripts
+
+    local src="${KEEPALIVED_CONFIG_SRC:-${ROOT}/configs/keepalived-${KEEPALIVED_ROLE}.conf}"
+    [[ -f "${src}" ]] || die "Config not found: ${src}"
+
+    install_file "${src}" "${KEEPALIVED_CFG}"
+
+    if [[ "${SKIP_KEEPALIVED_DEFAULTS:-false}" != "true" ]]; then
+        apply_keepalived_install_defaults "${KEEPALIVED_CFG}"
+    fi
+
+    # Enable IP forwarding and non-local bind for VIP
+    cat > /etc/sysctl.d/98-routedns-ingress-keepalived.conf <<'SYSCTL'
+net.ipv4.ip_nonlocal_bind = 1
+net.ipv4.ip_forward = 1
+SYSCTL
+    sysctl -p /etc/sysctl.d/98-routedns-ingress-keepalived.conf
+
+    systemctl enable keepalived
+    systemctl restart keepalived
+    verify_service keepalived
+
+    info "Keepalived installation complete (${KEEPALIVED_ROLE})."
+    if [[ "${SKIP_KEEPALIVED_DEFAULTS:-false}" != "true" ]]; then
+        warn "Edit ${KEEPALIVED_CFG}: set VIP (replace 203.0.113.100) and auth_pass (replace CHANGE_ME_VRRP_SECRET)."
+    fi
+}
+
+apply_keepalived_install_defaults() {
+    local cfg="${1:-${KEEPALIVED_CFG}}"
+    local iface
+
+    iface="$(ip route get 1.1.1.1 2>/dev/null | awk '{for (i=1; i<=NF; i++) if ($i == "dev") { print $(i+1); exit }}')"
+    if [[ -z "${iface}" ]]; then
+        iface="$(ip -o link show | awk -F': ' '$2 != "lo" { print $2; exit }')"
+    fi
+    [[ -n "${iface}" ]] || die "Could not detect network interface for Keepalived."
+
+    sed -i \
+        -e "s/CHANGE_ME_INTERFACE/${iface}/g" \
+        -e 's/CHANGE_ME_VIP/203.0.113.100/g' \
+        -e 's/CHANGE_ME_VIP_PREFIX/32/g' \
+        "${cfg}"
+
+    info "Keepalived defaults applied: interface=${iface}, VIP=203.0.113.100/32 (change before production)."
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    install_keepalived
+fi

@@ -1,0 +1,96 @@
+name: Platform Tests
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: platform-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  platform:
+    name: ${{ matrix.platform }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Debian 13 (Trixie)
+          - platform: debian-13-amd64
+            image: debian:trixie
+            runner: ubuntu-latest
+          - platform: debian-13-arm64
+            image: debian:trixie
+            runner: ubuntu-24.04-arm
+
+          # Ubuntu
+          - platform: ubuntu-24.04-amd64
+            image: ubuntu:24.04
+            runner: ubuntu-latest
+          - platform: ubuntu-24.04-arm64
+            image: ubuntu:24.04
+            runner: ubuntu-24.04-arm
+          - platform: ubuntu-25.04-amd64
+            image: ubuntu:25.04
+            runner: ubuntu-latest
+          - platform: ubuntu-25.04-arm64
+            image: ubuntu:25.04
+            runner: ubuntu-24.04-arm
+
+          # AlmaLinux
+          - platform: almalinux-9-amd64
+            image: almalinux:9
+            runner: ubuntu-latest
+          - platform: almalinux-9-arm64
+            image: almalinux:9
+            runner: ubuntu-24.04-arm
+          - platform: almalinux-10-amd64
+            image: almalinux:10
+            runner: ubuntu-latest
+          - platform: almalinux-10-arm64
+            image: almalinux:10
+            runner: ubuntu-24.04-arm
+
+    container:
+      image: ${{ matrix.image }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install prerequisites
+        run: |
+          set -euo pipefail
+          if command -v apt-get >/dev/null 2>&1; then
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get update -qq
+            apt-get install -y -qq bash ca-certificates
+          elif command -v dnf >/dev/null 2>&1; then
+            dnf install -y -q bash ca-certificates
+          elif command -v yum >/dev/null 2>&1; then
+            yum install -y -q bash ca-certificates
+          fi
+
+      - name: Run platform tests
+        run: ./scripts/test-platform.sh
+
+  platform-summary:
+    name: Platform test summary
+    runs-on: ubuntu-latest
+    needs: platform
+    if: always()
+    steps:
+      - name: Report results
+        run: |
+          if [[ "${{ needs.platform.result }}" == "success" ]]; then
+            echo "All platform tests passed."
+            exit 0
+          fi
+          echo "One or more platform tests failed."
+          exit 1

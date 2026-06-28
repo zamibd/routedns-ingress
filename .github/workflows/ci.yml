@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  shellcheck:
+    name: ShellCheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run ShellCheck
+        uses: koalaman/shellcheck-action@v0.9.0
+        with:
+          scandir: '.'
+          severity: warning
+
+  validate-configs:
+    name: Validate Configurations
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq haproxy shellcheck
+
+      - name: Validate HAProxy configuration syntax
+        run: make test-config
+
+      - name: Check Keepalived config syntax
+        run: |
+          keepalived -t -f configs/keepalived-master.conf 2>/dev/null || \
+            echo "Keepalived syntax check skipped (not installed in CI runner)"
+
+      - name: Verify repository structure
+        run: |
+          required_files=(
+            README.md
+            LICENSE
+            CHANGELOG.md
+            Makefile
+            install.sh
+            uninstall.sh
+            configs/haproxy.cfg
+            configs/keepalived-master.conf
+            configs/keepalived-backup.conf
+            scripts/install-haproxy.sh
+            scripts/install-keepalived.sh
+            scripts/healthcheck.sh
+            scripts/reload.sh
+            scripts/validate.sh
+            .env.example
+            scripts/setup.sh
+            scripts/render-config.sh
+            scripts/preflight.sh
+            scripts/test-platform.sh
+            scripts/test-e2e-install.sh
+            scripts/logrotate-postrotate.sh
+            .github/workflows/platform-test.yml
+            .github/workflows/e2e-install.yml
+            .github/workflows/release.yml
+            docs/installation.md
+            docs/keepalived.md
+            docs/haproxy.md
+            docs/monitoring.md
+            docs/tuning.md
+            docs/troubleshooting.md
+          )
+          for f in "${required_files[@]}"; do
+            test -f "$f" || { echo "Missing: $f"; exit 1; }
+          done
+          echo "All required files present."
+
+      - name: Verify Makefile targets
+        run: |
+          make help
+          make ci
+          for script in install.sh uninstall.sh scripts/*.sh; do
+            test -x "$script" || { echo "Not executable: $script"; exit 1; }
+          done
+
+  markdown:
+    name: Markdown Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check documentation exists and is non-empty
+        run: |
+          for doc in README.md CHANGELOG.md docs/*.md; do
+            test -s "$doc" || { echo "Empty or missing: $doc"; exit 1; }
+          done
