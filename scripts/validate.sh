@@ -6,8 +6,6 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # shellcheck source=scripts/lib.sh
 source "${ROOT}/scripts/lib.sh"
 
-HAPROXY_CFG="/etc/haproxy/haproxy.cfg"
-KEEPALIVED_CFG="/etc/keepalived/keepalived.conf"
 PREFLIGHT="${INSTALL_PREFIX}/preflight.sh"
 ERRORS=0
 WARNINGS=0
