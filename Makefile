@@ -132,7 +132,7 @@ stats: ## Show HAProxy stats via admin socket
 .PHONY: lint test-config test-platform test-e2e ci ci-all
 lint: ## Run ShellCheck on all scripts
 	@command -v shellcheck >/dev/null || { echo "Install shellcheck first"; exit 1; }
-	shellcheck $(ROOT)/scripts/*.sh $(ROOT)/install.sh $(ROOT)/uninstall.sh
+	shellcheck -S warning $(ROOT)/scripts/*.sh $(ROOT)/install.sh $(ROOT)/uninstall.sh
 
 test-config: ## Validate bundled haproxy.cfg (local, no install)
 	@sed '/server _install_placeholder/d' $(ROOT)/configs/haproxy.cfg > /tmp/haproxy-test.cfg

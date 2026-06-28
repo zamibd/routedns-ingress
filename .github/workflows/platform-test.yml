@@ -11,6 +11,10 @@ concurrency:
   group: platform-${{ github.ref }}
   cancel-in-progress: true
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   platform:
     name: ${{ matrix.platform }}

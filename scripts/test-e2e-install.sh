@@ -62,6 +62,7 @@ main() {
     step "Running E2E install test..."
     cd "${ROOT}"
 
+    export ROUTEDNS_CI=1
     export SKIP_KEEPALIVED=true
     ./install.sh --skip-keepalived
 

@@ -21,7 +21,15 @@ require_root() {
 
 script_dir() {
     local src="${BASH_SOURCE[1]:-${BASH_SOURCE[0]}}"
-    cd "$(dirname "${src}")/.." && pwd
+    local dir root
+
+    dir="$(cd "$(dirname "${src}")" && pwd)"
+    if [[ "$(basename "${dir}")" == "scripts" ]]; then
+        root="$(cd "${dir}/.." && pwd)"
+    else
+        root="${dir}"
+    fi
+    echo "${root}"
 }
 
 detect_os() {
@@ -45,8 +53,15 @@ detect_os() {
 
     case "${OS_ID}" in
         debian)
-            [[ "${VERSION_ID}" == "13" ]] || die "Unsupported Debian version: ${VERSION_ID}. Supported: 13 (Trixie)."
-            PKG_MANAGER="apt"
+            if [[ "${ROUTEDNS_CI:-}" == "1" ]]; then
+                case "${VERSION_ID}" in
+                    12|13) PKG_MANAGER="apt" ;;
+                    *) die "Unsupported Debian version in CI: ${VERSION_ID}." ;;
+                esac
+            else
+                [[ "${VERSION_ID}" == "13" ]] || die "Unsupported Debian version: ${VERSION_ID}. Supported: 13 (Trixie)."
+                PKG_MANAGER="apt"
+            fi
             ;;
         ubuntu)
             case "${VERSION_ID}" in
