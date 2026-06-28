@@ -41,6 +41,23 @@ script_dir() {
     die "Could not determine project root."
 }
 
+detect_interface() {
+    local iface
+    iface="$(ip route get 1.1.1.1 2>/dev/null | awk '{for (i=1; i<=NF; i++) if ($i == "dev") { print $(i+1); exit }}')"
+    if [[ -z "${iface}" ]]; then
+        iface="$(ip -o link show | awk -F': ' '$2 != "lo" { print $2; exit }')"
+    fi
+    iface="${iface%%@*}"
+    echo "${iface:-eth0}"
+}
+
+install_keepalived_scripts() {
+    local root="${1:-$(script_dir)}"
+    mkdir -p /etc/keepalived/scripts
+    install -m 755 "${root}/scripts/healthcheck.sh" /etc/keepalived/scripts/healthcheck.sh
+    install -m 755 "${root}/scripts/keepalived-notify.sh" /etc/keepalived/scripts/keepalived-notify.sh
+}
+
 detect_os() {
     if [[ ! -f /etc/os-release ]]; then
         die "Cannot detect OS: /etc/os-release not found."

@@ -46,7 +46,9 @@ jobs:
             set -euo pipefail
             export DEBIAN_FRONTEND=noninteractive
             export ROUTEDNS_CI=1
+            rm -rf /tmp/routedns-ingress
             cp -a /src /tmp/routedns-ingress
+            export ROUTEDNS_ROOT=/tmp/routedns-ingress
             cd /tmp/routedns-ingress
             chmod +x install.sh uninstall.sh scripts/*.sh
             ./scripts/test-e2e-install.sh

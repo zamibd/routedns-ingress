@@ -51,10 +51,7 @@ load_setup_env() {
     esac
 
     if [[ -z "${INTERFACE}" ]]; then
-        INTERFACE="$(ip route get 1.1.1.1 2>/dev/null | awk '{for (i=1; i<=NF; i++) if ($i == "dev") { print $(i+1); exit }}')"
-        if [[ -z "${INTERFACE}" ]]; then
-            INTERFACE="$(ip -o link show | awk -F': ' '$2 != "lo" { print $2; exit }')"
-        fi
+        INTERFACE="$(detect_interface)"
     fi
     [[ -n "${INTERFACE}" ]] || die "Could not detect network interface — set INTERFACE in ${SETUP_ENV}"
 
@@ -114,11 +111,7 @@ render_keepalived() {
         -e "s|CHANGE_ME_VIP/CHANGE_ME_VIP_PREFIX|${VIP}/${VIP_PREFIX}|g" \
         "${src}" > "${out}"
 
-    mkdir -p /usr/local/lib/routedns-ingress
-    if [[ -f "${ROOT}/scripts/healthcheck.sh" ]]; then
-        install -m 755 "${ROOT}/scripts/healthcheck.sh" /usr/local/lib/routedns-ingress/healthcheck.sh 2>/dev/null || true
-        install -m 755 "${ROOT}/scripts/keepalived-notify.sh" /usr/local/lib/routedns-ingress/keepalived-notify.sh 2>/dev/null || true
-    fi
+    install_keepalived_scripts "${ROOT}"
 
     keepalived -t -f "${out}"
     info "Rendered ${out} (role=${ROLE})"

@@ -39,6 +39,8 @@ install_keepalived() {
 
     install_file "${src}" "${KEEPALIVED_CFG}"
 
+    install_keepalived_scripts "${ROOT}"
+
     if [[ "${SKIP_KEEPALIVED_DEFAULTS:-false}" != "true" ]]; then
         apply_keepalived_install_defaults "${KEEPALIVED_CFG}"
     fi
@@ -64,10 +66,7 @@ apply_keepalived_install_defaults() {
     local cfg="${1:-${KEEPALIVED_CFG}}"
     local iface
 
-    iface="$(ip route get 1.1.1.1 2>/dev/null | awk '{for (i=1; i<=NF; i++) if ($i == "dev") { print $(i+1); exit }}')"
-    if [[ -z "${iface}" ]]; then
-        iface="$(ip -o link show | awk -F': ' '$2 != "lo" { print $2; exit }')"
-    fi
+    iface="$(detect_interface)"
     [[ -n "${iface}" ]] || die "Could not detect network interface for Keepalived."
 
     sed -i \

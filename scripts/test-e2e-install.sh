@@ -13,8 +13,8 @@ prepare_keepalived_for_test() {
     local test_cfg="/tmp/keepalived-e2e.conf"
     local iface
 
-    iface="$(ip -o link show | awk -F': ' '!/lo/ {print $2; exit}')"
-    [[ -n "${iface}" ]] || iface="eth0"
+    install_keepalived_scripts "${ROOT}"
+    iface="$(detect_interface)"
 
     sed \
         -e "s/CHANGE_ME_INTERFACE/${iface}/g" \

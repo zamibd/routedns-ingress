@@ -3,6 +3,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+export ROUTEDNS_ROOT="${ROOT}"
 # shellcheck source=scripts/lib.sh
 source "${ROOT}/scripts/lib.sh"
 
@@ -14,12 +15,13 @@ keepalived_test_config() {
     local dst="/tmp/keepalived-test-${role}.conf"
     local iface
 
-    iface="$(ip -o link show | awk -F': ' '!/lo/ {print $2; exit}')"
-    [[ -n "${iface}" ]] || iface="eth0"
+    iface="$(detect_interface)"
+
+    install_keepalived_scripts "${ROOT}"
 
     sed \
         -e "s/CHANGE_ME_INTERFACE/${iface}/g" \
-        -e 's/CHANGE_ME_VRRP_SECRET/testsecret/g' \
+        -e 's/CHANGE_ME_VRRP_SECRET/testsec1/g' \
         -e 's|CHANGE_ME_VIP/CHANGE_ME_VIP_PREFIX|127.0.0.1/32|g' \
         "${src}" > "${dst}"
     echo "${dst}"
@@ -50,10 +52,6 @@ validate_haproxy_config() {
 
 validate_keepalived_config() {
     step "Validating Keepalived configurations..."
-
-    mkdir -p "${INSTALL_PREFIX}"
-    install -m 755 "${ROOT}/scripts/healthcheck.sh" "${INSTALL_PREFIX}/healthcheck.sh"
-    install -m 755 "${ROOT}/scripts/keepalived-notify.sh" "${INSTALL_PREFIX}/keepalived-notify.sh"
 
     for role in master backup; do
         local test_cfg

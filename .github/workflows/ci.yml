@@ -34,10 +34,10 @@ jobs:
       - name: Check Keepalived config syntax
         run: |
           sudo apt-get install -y -qq keepalived
-          sudo mkdir -p /usr/local/lib/routedns-ingress
-          sudo install -m 755 scripts/healthcheck.sh /usr/local/lib/routedns-ingress/healthcheck.sh
-          sudo install -m 755 scripts/keepalived-notify.sh /usr/local/lib/routedns-ingress/keepalived-notify.sh
-          iface="$(ip -o link show | awk -F': ' '$2 != "lo" { print $2; exit }')"
+          sudo mkdir -p /etc/keepalived/scripts
+          sudo install -m 755 scripts/healthcheck.sh /etc/keepalived/scripts/healthcheck.sh
+          sudo install -m 755 scripts/keepalived-notify.sh /etc/keepalived/scripts/keepalived-notify.sh
+          iface="$(ip route get 1.1.1.1 | awk '{for (i=1;i<=NF;i++) if ($i=="dev") {print $(i+1); exit}}' | sed 's/@.*//')"
           sed \
             -e "s/CHANGE_ME_INTERFACE/${iface}/g" \
             -e 's/CHANGE_ME_VRRP_SECRET/testsec1/g' \
