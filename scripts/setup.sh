@@ -13,6 +13,14 @@ step() { info "==> $*"; }
 run_setup() {
     require_root
 
+    step "Installing packages and system tuning..."
+    detect_os
+    pkg_update
+    case "${PKG_MANAGER}" in
+        apt) pkg_install haproxy keepalived socat rsyslog logrotate procps ;;
+        dnf|yum) pkg_install haproxy keepalived socat rsyslog logrotate procps-ng ;;
+    esac
+
     step "Loading and rendering configuration from .env..."
     # shellcheck source=scripts/render-config.sh
     source "${ROOT}/scripts/render-config.sh"
@@ -22,14 +30,6 @@ run_setup() {
     export KEEPALIVED_CONFIG_SRC="${RENDERED_KEEPALIVED}"
     export KEEPALIVED_ROLE="${ROLE}"
     export SKIP_KEEPALIVED_DEFAULTS=true
-
-    step "Installing packages and system tuning..."
-    detect_os
-    pkg_update
-    case "${PKG_MANAGER}" in
-        apt) pkg_install haproxy keepalived socat rsyslog logrotate ;;
-        dnf|yum) pkg_install haproxy keepalived socat rsyslog logrotate ;;
-    esac
 
     install_scripts
 
