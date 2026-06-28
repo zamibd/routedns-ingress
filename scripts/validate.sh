@@ -2,9 +2,19 @@
 # routedns-ingress — validate installation and configuration
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-# shellcheck source=scripts/lib.sh
-source "${ROOT}/scripts/lib.sh"
+_script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -f "${_script_dir}/lib.sh" ]]; then
+    # shellcheck source=lib.sh
+    source "${_script_dir}/lib.sh"
+    ROOT="${ROUTEDNS_ROOT:-$(cd "${_script_dir}/.." && pwd)}"
+elif [[ -f "${_script_dir}/../scripts/lib.sh" ]]; then
+    ROOT="$(cd "${_script_dir}/.." && pwd)"
+    # shellcheck source=scripts/lib.sh
+    source "${ROOT}/scripts/lib.sh"
+else
+    echo "lib.sh not found" >&2
+    exit 1
+fi
 
 PREFLIGHT="${INSTALL_PREFIX}/preflight.sh"
 ERRORS=0

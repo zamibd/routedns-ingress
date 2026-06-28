@@ -112,7 +112,10 @@ pkg_update() {
     case "${PKG_MANAGER}" in
         apt)
             export DEBIAN_FRONTEND=noninteractive
-            apt-get update -qq
+            if ! apt-get update -qq; then
+                sleep 2
+                apt-get update -qq
+            fi
             ;;
         dnf|yum)
             ${PKG_MANAGER} makecache -q || true
@@ -201,6 +204,8 @@ install_scripts() {
     local root
     root="$(script_dir)"
     mkdir -p "${INSTALL_PREFIX}"
+
+    install -m 644 "${root}/scripts/lib.sh" "${INSTALL_PREFIX}/lib.sh"
 
     for script in healthcheck.sh reload.sh validate.sh preflight.sh keepalived-notify.sh logrotate-postrotate.sh; do
         install -m 755 "${root}/scripts/${script}" "${INSTALL_PREFIX}/${script}"
