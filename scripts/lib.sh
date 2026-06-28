@@ -53,9 +53,8 @@ detect_interface() {
 
 install_keepalived_scripts() {
     local root="${1:-$(script_dir)}"
-    mkdir -p /etc/keepalived/scripts
-    install -m 755 "${root}/scripts/healthcheck.sh" /etc/keepalived/scripts/healthcheck.sh
-    install -m 755 "${root}/scripts/keepalived-notify.sh" /etc/keepalived/scripts/keepalived-notify.sh
+    install -o root -g root -m 755 "${root}/scripts/healthcheck.sh" /etc/keepalived/healthcheck.sh
+    install -o root -g root -m 755 "${root}/scripts/keepalived-notify.sh" /etc/keepalived/keepalived-notify.sh
 }
 
 detect_os() {

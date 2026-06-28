@@ -34,10 +34,10 @@ jobs:
         run: |
           set -euo pipefail
           docker pull "${{ matrix.image }}"
-          cid="$(docker run -d --privileged \
+          cid="$(          docker run -d --privileged \
             --cgroupns=host \
             -v /sys/fs/cgroup:/sys/fs/cgroup:rw \
-            -v "${{ github.workspace }}:/src:ro" \
+            -v "${{ github.workspace }}:/src:rw" \
             "${{ matrix.image }}")"
           cleanup() { docker rm -f "${cid}" >/dev/null 2>&1 || true; }
           trap cleanup EXIT
@@ -46,12 +46,10 @@ jobs:
             set -euo pipefail
             export DEBIAN_FRONTEND=noninteractive
             export ROUTEDNS_CI=1
-            rm -rf /tmp/routedns-ingress
-            cp -a /src /tmp/routedns-ingress
-            export ROUTEDNS_ROOT=/tmp/routedns-ingress
-            cd /tmp/routedns-ingress
-            chmod +x install.sh uninstall.sh scripts/*.sh
-            ./scripts/test-e2e-install.sh
+            export ROUTEDNS_ROOT=/src
+            cd /
+            chmod +x /src/install.sh /src/uninstall.sh /src/scripts/*.sh
+            bash /src/scripts/test-e2e-install.sh
           '
 
   e2e-summary:

@@ -2,7 +2,16 @@
 # routedns-ingress — end-to-end install test (CI with systemd containers)
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+_entry="${BASH_SOURCE[0]}"
+_dir="${_entry%/*}"
+[[ "${_dir}" == "${_entry}" ]] && _dir="."
+if [[ -n "${ROUTEDNS_ROOT:-}" && -d "${ROUTEDNS_ROOT}" ]]; then
+    ROOT="${ROUTEDNS_ROOT}"
+elif [[ "${_dir}" == /* ]]; then
+    ROOT="${_dir}"
+else
+    ROOT="$(cd "${_dir}/.." && pwd)"
+fi
 # shellcheck source=scripts/lib.sh
 source "${ROOT}/scripts/lib.sh"
 
@@ -63,12 +72,10 @@ main() {
     rm -f /usr/sbin/policy-rc.d
 
     step "Running E2E install test..."
-    cd "${ROOT}"
-
     export ROUTEDNS_ROOT="${ROOT}"
     export ROUTEDNS_CI=1
     export SKIP_KEEPALIVED=true
-    ./install.sh --skip-keepalived
+    bash "${ROOT}/install.sh" --skip-keepalived
 
     configure_test_backends
 

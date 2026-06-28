@@ -3,7 +3,16 @@
 # Layer-4 TCP ingress for DNS-over-TLS using HAProxy and Keepalived.
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_entry="${BASH_SOURCE[0]}"
+_dir="${_entry%/*}"
+[[ "${_dir}" == "${_entry}" ]] && _dir="."
+if [[ -n "${ROUTEDNS_ROOT:-}" && -d "${ROUTEDNS_ROOT}" ]]; then
+    ROOT="${ROUTEDNS_ROOT}"
+elif [[ "${_dir}" == /* ]]; then
+    ROOT="${_dir}"
+else
+    ROOT="$(cd "${_dir}" && pwd)"
+fi
 export ROUTEDNS_ROOT="${ROOT}"
 # shellcheck source=scripts/lib.sh
 source "${ROOT}/scripts/lib.sh"
