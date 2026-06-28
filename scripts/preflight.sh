@@ -78,7 +78,7 @@ preflight_keepalived() {
         return
     fi
 
-    if grep -q 'CHANGE_ME' "${KEEPALIVED_CFG}"; then
+    if keepalived_has_placeholders "${KEEPALIVED_CFG}"; then
         fail_check "Keepalived config contains CHANGE_ME placeholders — edit ${KEEPALIVED_CFG}"
     else
         pass_check "Keepalived placeholders resolved"

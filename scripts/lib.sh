@@ -61,6 +61,12 @@ install_keepalived_scripts() {
     install -o root -g root -m 755 "${root}/scripts/keepalived-notify.sh" /etc/keepalived/keepalived-notify.sh
 }
 
+keepalived_has_placeholders() {
+    local cfg="${1:-${KEEPALIVED_CFG}}"
+    [[ -f "${cfg}" ]] || return 1
+    grep -Ev '^[[:space:]]*#' "${cfg}" | grep -q 'CHANGE_ME'
+}
+
 detect_os() {
     if [[ ! -f /etc/os-release ]]; then
         die "Cannot detect OS: /etc/os-release not found."

@@ -50,7 +50,7 @@ validate() {
         check "Keepalived is installed" command -v keepalived
         check "Keepalived service is active" systemctl is-active --quiet keepalived
         check "Keepalived service is enabled" systemctl is-enabled --quiet keepalived
-        if grep -q 'CHANGE_ME' "${KEEPALIVED_CFG}" 2>/dev/null; then
+        if keepalived_has_placeholders "${KEEPALIVED_CFG}"; then
             warn "WARN: Keepalived still has CHANGE_ME placeholders — edit before production."
             WARNINGS=$((WARNINGS + 1))
         fi

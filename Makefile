@@ -38,11 +38,11 @@ init: ## Create .env from .env.example
 
 setup: ## Full A-Z production setup (install, configure, validate, preflight)
 	@test -f "$(SETUP_ENV)" || { echo "Run: make init && edit .env"; exit 1; }
-	$(SUDO) $(SCRIPTS)/setup.sh
+	$(SUDO) bash $(SCRIPTS)/setup.sh
 
 render: ## Render configs from .env only (no install)
 	@test -f "$(SETUP_ENV)" || { echo "Run: make init"; exit 1; }
-	$(SUDO) $(SCRIPTS)/render-config.sh
+	$(SUDO) bash $(SCRIPTS)/render-config.sh
 
 # ---------------------------------------------------------------------------
 # Install
