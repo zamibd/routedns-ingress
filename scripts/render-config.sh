@@ -17,6 +17,17 @@ is_valid_ip() {
     [[ "${ip}" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]
 }
 
+generate_vrrp_secret() {
+    if command -v openssl &>/dev/null; then
+        openssl rand -hex 4
+        return
+    fi
+    # head closes the pipe early; without this, pipefail treats tr's SIGPIPE (141) as failure
+    set +o pipefail
+    tr -dc 'A-Za-z0-9' </dev/urandom | head -c 8
+    set -o pipefail
+}
+
 load_setup_env() {
     if [[ ! -f "${SETUP_ENV}" ]]; then
         die "Missing ${SETUP_ENV}. Run: make init"
@@ -56,7 +67,7 @@ load_setup_env() {
     [[ -n "${INTERFACE}" ]] || die "Could not detect network interface — set INTERFACE in ${SETUP_ENV}"
 
     if [[ -z "${VRRP_SECRET}" ]]; then
-        VRRP_SECRET="$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 8)"
+        VRRP_SECRET="$(generate_vrrp_secret)"
         info "Generated VRRP_SECRET (saved to ${SETUP_ENV})"
         if grep -q '^VRRP_SECRET=' "${SETUP_ENV}"; then
             sed -i "s/^VRRP_SECRET=.*/VRRP_SECRET=${VRRP_SECRET}/" "${SETUP_ENV}"
