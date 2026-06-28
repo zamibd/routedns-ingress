@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 # routedns-ingress — shared library for install scripts
+
+[[ -n "${ROUTEDNS_LIB_SH:-}" ]] && return 0
+ROUTEDNS_LIB_SH=1
+
 set -euo pipefail
 
 readonly PROJECT_NAME="routedns-ingress"
