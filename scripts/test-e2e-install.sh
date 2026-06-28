@@ -59,9 +59,13 @@ EOF
 main() {
     require_root
 
+    # jrei/systemd images block service starts during apt via policy-rc.d
+    rm -f /usr/sbin/policy-rc.d
+
     step "Running E2E install test..."
     cd "${ROOT}"
 
+    export ROUTEDNS_ROOT="${ROOT}"
     export ROUTEDNS_CI=1
     export SKIP_KEEPALIVED=true
     ./install.sh --skip-keepalived

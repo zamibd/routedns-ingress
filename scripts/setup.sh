@@ -4,6 +4,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+export ROUTEDNS_ROOT="${ROOT}"
 # shellcheck source=scripts/lib.sh
 source "${ROOT}/scripts/lib.sh"
 

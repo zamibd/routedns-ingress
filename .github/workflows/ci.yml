@@ -34,10 +34,13 @@ jobs:
       - name: Check Keepalived config syntax
         run: |
           sudo apt-get install -y -qq keepalived
+          sudo mkdir -p /usr/local/lib/routedns-ingress
+          sudo install -m 755 scripts/healthcheck.sh /usr/local/lib/routedns-ingress/healthcheck.sh
+          sudo install -m 755 scripts/keepalived-notify.sh /usr/local/lib/routedns-ingress/keepalived-notify.sh
           iface="$(ip -o link show | awk -F': ' '$2 != "lo" { print $2; exit }')"
           sed \
             -e "s/CHANGE_ME_INTERFACE/${iface}/g" \
-            -e 's/CHANGE_ME_VRRP_SECRET/testsecret/g' \
+            -e 's/CHANGE_ME_VRRP_SECRET/testsec1/g' \
             -e 's|CHANGE_ME_VIP/CHANGE_ME_VIP_PREFIX|127.0.0.1/32|g' \
             configs/keepalived-master.conf > /tmp/keepalived-test.conf
           keepalived -t -f /tmp/keepalived-test.conf

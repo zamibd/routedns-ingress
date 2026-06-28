@@ -20,16 +20,25 @@ require_root() {
 }
 
 script_dir() {
-    local src="${BASH_SOURCE[1]:-${BASH_SOURCE[0]}}"
-    local dir root
-
-    dir="$(cd "$(dirname "${src}")" && pwd)"
-    if [[ "$(basename "${dir}")" == "scripts" ]]; then
-        root="$(cd "${dir}/.." && pwd)"
-    else
-        root="${dir}"
+    if [[ -n "${ROUTEDNS_ROOT:-}" && -d "${ROUTEDNS_ROOT}" ]]; then
+        echo "${ROUTEDNS_ROOT}"
+        return
     fi
-    echo "${root}"
+
+    local i src dir
+    for ((i = 1; i < ${#BASH_SOURCE[@]}; i++)); do
+        src="${BASH_SOURCE[$i]}"
+        [[ "$(basename "${src}")" == "lib.sh" ]] && continue
+        dir="$(cd "$(dirname "${src}")" && pwd)"
+        if [[ "$(basename "${dir}")" == "scripts" ]]; then
+            echo "$(cd "${dir}/.." && pwd)"
+        else
+            echo "${dir}"
+        fi
+        return
+    done
+
+    die "Could not determine project root."
 }
 
 detect_os() {
