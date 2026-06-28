@@ -1,0 +1,9 @@
+# Force LF line endings for shell scripts and configs so they are always
+# executable on Linux regardless of the client's core.autocrlf setting.
+*.sh        text eol=lf
+*.cfg       text eol=lf
+*.conf      text eol=lf
+Makefile    text eol=lf
+install.sh  text eol=lf
+uninstall.sh text eol=lf
+.env.example text eol=lf
