@@ -11,7 +11,10 @@ Type=forking
 PIDFile=/run/keepalived.pid
 KillMode=process
 EnvironmentFile=-/etc/default/keepalived
-ExecStart=/usr/sbin/keepalived --dont-fork $DAEMON_ARGS
+# This build has no systemd-notify support, so Type=forking is used.
+# Do NOT pass --dont-fork here: it keeps keepalived in the foreground and
+# systemd would wait for the (never-exiting) parent until the start timeout.
+ExecStart=/usr/sbin/keepalived $DAEMON_ARGS
 ExecReload=/bin/kill -HUP $MAINPID
 
 [Install]
