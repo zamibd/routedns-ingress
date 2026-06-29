@@ -60,8 +60,8 @@ jobs:
       - name: Verify pinned versions
         run: |
           set -euo pipefail
-          haproxy_ver="$(haproxy -v 2>&1 | sed -n '1s/.*\([0-9]\+\.[0-9]\+\.[0-9]\+\).*/\1/p')"
-          keepalived_ver="$(keepalived -v 2>&1 | sed -n '1s/.*v\?\([0-9]\+\.[0-9]\+\.[0-9]\+\).*/\1/p')"
+          haproxy_ver="$(haproxy -v 2>&1 | sed -n '1s/^HAProxy version \([0-9]\+\.[0-9]\+\.[0-9]\+\).*/\1/p')"
+          keepalived_ver="$(keepalived -v 2>&1 | sed -n '1s/^Keepalived v\([0-9]\+\.[0-9]\+\.[0-9]\+\).*/\1/p')"
           echo "HAProxy: ${haproxy_ver}"
           echo "Keepalived: ${keepalived_ver}"
           test -n "${haproxy_ver}"

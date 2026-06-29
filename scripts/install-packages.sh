@@ -30,11 +30,11 @@ keepalived_md5() {
 }
 
 installed_haproxy_version() {
-    haproxy -v 2>&1 | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || true
+    parse_haproxy_version
 }
 
 installed_keepalived_version() {
-    keepalived -v 2>&1 | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || true
+    parse_keepalived_version
 }
 
 version_at_least() {

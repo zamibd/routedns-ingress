@@ -109,8 +109,16 @@ preflight_keepalived() {
 
 preflight_firewall() {
     if command -v ufw &>/dev/null && ufw status 2>/dev/null | grep -qi 'Status: active'; then
-        ufw status | grep -qE '853/tcp' || fail_check "UFW active but 853/tcp is not allowed"
-        ufw status | grep -qE '22/tcp' || fail_check "UFW active but 22/tcp is not allowed"
+        if ufw status 2>/dev/null | grep -qE '853/tcp'; then
+            :
+        else
+            fail_check "UFW active but 853/tcp is not allowed"
+        fi
+        if ufw status 2>/dev/null | grep -qE '22/tcp'; then
+            :
+        else
+            fail_check "UFW active but 22/tcp is not allowed"
+        fi
         [[ "${ERRORS}" -eq 0 ]] || return
         pass_check "UFW allows 22/tcp and 853/tcp"
     elif command -v firewall-cmd &>/dev/null && systemctl is-active --quiet firewalld 2>/dev/null; then
@@ -139,8 +147,8 @@ preflight_packages() {
     target_haproxy="${target_haproxy:-3.4.1}"
     target_keepalived="${target_keepalived:-2.4.1}"
 
-    installed_h="$(haproxy -v 2>&1 | sed -n '1s/.*\([0-9]\+\.[0-9]\+\.[0-9]\+\).*/\1/p')"
-    installed_k="$(keepalived -v 2>&1 | sed -n '1s/.*v\?\([0-9]\+\.[0-9]\+\.[0-9]\+\).*/\1/p')"
+    installed_h="$(parse_haproxy_version)"
+    installed_k="$(parse_keepalived_version)"
 
     if printf '%s\n%s\n' "${target_haproxy}" "${installed_h}" | sort -C -V 2>/dev/null; then
         pass_check "HAProxy version ${installed_h} meets target ${target_haproxy}"
