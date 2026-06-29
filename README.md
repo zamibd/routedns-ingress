@@ -7,7 +7,7 @@ routedns-ingress receives incoming DoT TCP connections on port 853 and forwards 
 ## Quick Start
 
 ```bash
-git clone https://github.com/routedns/routedns-ingress.git
+git clone https://github.com/zamibd/routedns-ingress.git
 cd routedns-ingress
 make init
 ```
