@@ -17,19 +17,18 @@ Two frontends handle IPv4 and IPv6 separately:
 ```haproxy
 frontend dot_ingress_v4
     bind *:853
-    bind *:853 accept-proxy
     maxconn 25000
     default_backend dot_backends
 
 frontend dot_ingress_v6
     bind [::]:853 v6only
-    bind [::]:853 v6only accept-proxy
     maxconn 25000
     default_backend dot_backends
 ```
 
-- `accept-proxy` enables PROXY Protocol v2 on incoming connections.
-- Remove `accept-proxy` binds if clients do not send PROXY headers.
+- Clients connect with **plain TLS** — do not use `accept-proxy` on ingress frontends.
+- Ingress adds PROXY v2 to backends via `send-proxy-v2` on server lines (see Backend Configuration).
+- Only add `accept-proxy` on ingress if a **cloud LB in front of the VIP** sends PROXY headers to ingress.
 
 ## Backend Configuration
 
