@@ -108,6 +108,12 @@ preflight_keepalived() {
 }
 
 preflight_firewall() {
+    if [[ "${SKIP_FIREWALL_PREFLIGHT:-}" == "true" ]]; then
+        info "Skipping firewall preflight (SKIP_FIREWALL_PREFLIGHT=true)."
+        return
+    fi
+
+    set +o pipefail
     if command -v ufw &>/dev/null && ufw status 2>/dev/null | grep -qi 'Status: active'; then
         if ufw status 2>/dev/null | grep -qE '853/tcp'; then
             :
@@ -132,6 +138,7 @@ preflight_firewall() {
     else
         info "Firewall preflight skipped (no active ufw/firewalld)."
     fi
+    set -o pipefail
 }
 
 preflight_packages() {
