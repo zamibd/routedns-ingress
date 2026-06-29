@@ -40,9 +40,9 @@ backend dot_backends
     option tcp-check
     tcp-check connect port 853
 
-    server dot1 10.0.1.10:853 check inter 5s fall 3 rise 2 weight 100 send-proxy-v2
-    server dot2 10.0.1.11:853 check inter 5s fall 3 rise 2 weight 100 send-proxy-v2
-    server dot3 10.0.1.12:853 check inter 5s fall 3 rise 2 weight 50  send-proxy-v2
+    server dot1 10.0.1.10:853 check inter 5s fall 3 rise 2 weight 100 send-proxy-v2 check-send-proxy
+    server dot2 10.0.1.11:853 check inter 5s fall 3 rise 2 weight 100 send-proxy-v2 check-send-proxy
+    server dot3 10.0.1.12:853 check inter 5s fall 3 rise 2 weight 50  send-proxy-v2 check-send-proxy
 ```
 
 ### Server Line Parameters
@@ -55,6 +55,7 @@ backend dot_backends
 | `rise 2` | Mark up after 2 successes |
 | `weight N` | Weight for weighted round robin |
 | `send-proxy-v2` | Send PROXY Protocol v2 to backend |
+| `check-send-proxy` | Send PROXY on health checks (required when backend uses `accept-proxy`) |
 | `disabled` | Temporarily disable without removing |
 
 ### Balance Algorithms
@@ -76,13 +77,9 @@ option tcp-check
 tcp-check connect port 853
 ```
 
-When `USE_PROXY_PROTOCOL=yes` (backend HAProxy uses `accept-proxy`), rendered configs also include:
+When `USE_PROXY_PROTOCOL=yes` (backend HAProxy uses `accept-proxy`), rendered server lines include `check-send-proxy` so health checks send PROXY v2 (required on HAProxy 3.4+; `tcp-check send proxy v2` was removed).
 
-```haproxy
-tcp-check send proxy v2 local 127.0.0.1
-```
-
-Without the PROXY health check, ingress probes hit the plain SSL bind and log `WRONG_VERSION_NUMBER`.
+Without PROXY on health checks, ingress probes hit the plain SSL bind and log `WRONG_VERSION_NUMBER`.
 
 Failed backends are automatically removed from rotation. They rejoin when checks pass again.
 
