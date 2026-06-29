@@ -128,18 +128,19 @@ preflight_firewall() {
 
 preflight_packages() {
     local conf="${INSTALL_PREFIX}/packages.conf"
-    local target_haproxy target_keepalived installed_h installed_k
+    local latest_flag target_haproxy target_keepalived installed_h installed_k
 
     [[ -f "${conf}" ]] || return
-    # shellcheck source=/dev/null
-    source "${conf}"
+    latest_flag="$(awk -F= '/^INSTALL_LATEST_PACKAGES=/ {print $2; exit}' "${conf}")"
+    [[ "${latest_flag}" == "yes" ]] || return
 
-    [[ "${INSTALL_LATEST_PACKAGES}" == "yes" ]] || return
+    target_haproxy="$(awk -F= '/^HAPROXY_TARGET_VERSION=/ {print $2; exit}' "${conf}")"
+    target_keepalived="$(awk -F= '/^KEEPALIVED_TARGET_VERSION=/ {print $2; exit}' "${conf}")"
+    target_haproxy="${target_haproxy:-3.4.1}"
+    target_keepalived="${target_keepalived:-2.4.1}"
 
-    target_haproxy="${HAPROXY_TARGET_VERSION:-3.4.1}"
-    target_keepalived="${KEEPALIVED_TARGET_VERSION:-2.4.1}"
-    installed_h="$(haproxy -v 2>&1 | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || true)"
-    installed_k="$(keepalived -v 2>&1 | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || true)"
+    installed_h="$(haproxy -v 2>&1 | sed -n '1s/.*\([0-9]\+\.[0-9]\+\.[0-9]\+\).*/\1/p')"
+    installed_k="$(keepalived -v 2>&1 | sed -n '1s/.*v\?\([0-9]\+\.[0-9]\+\.[0-9]\+\).*/\1/p')"
 
     if printf '%s\n%s\n' "${target_haproxy}" "${installed_h}" | sort -C -V 2>/dev/null; then
         pass_check "HAProxy version ${installed_h} meets target ${target_haproxy}"

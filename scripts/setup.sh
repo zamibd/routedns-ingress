@@ -19,8 +19,10 @@ run_setup() {
         source "${setup_env}"
     fi
     export INSTALL_LATEST_PACKAGES="${INSTALL_LATEST_PACKAGES:-no}"
-    export HAPROXY_VERSION="${HAPROXY_VERSION:-3.4.1}"
-    export KEEPALIVED_VERSION="${KEEPALIVED_VERSION:-2.4.1}"
+    if [[ "${INSTALL_LATEST_PACKAGES}" == "yes" ]]; then
+        export HAPROXY_VERSION="${HAPROXY_VERSION:-3.4.1}"
+        export KEEPALIVED_VERSION="${KEEPALIVED_VERSION:-2.4.1}"
+    fi
 
     step "Installing packages and system tuning..."
     # shellcheck source=scripts/install-packages.sh

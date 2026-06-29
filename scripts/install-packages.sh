@@ -63,21 +63,34 @@ write_packages_manifest() {
     mkdir -p "${INSTALL_PREFIX}"
     cat > "${INSTALL_PREFIX}/packages.conf" <<EOF
 INSTALL_LATEST_PACKAGES=${INSTALL_LATEST_PACKAGES}
-HAPROXY_VERSION=$(installed_haproxy_version)
-KEEPALIVED_VERSION=$(installed_keepalived_version)
+INSTALLED_HAPROXY_VERSION=$(installed_haproxy_version)
+INSTALLED_KEEPALIVED_VERSION=$(installed_keepalived_version)
+EOF
+    if [[ "${INSTALL_LATEST_PACKAGES}" == "yes" ]]; then
+        cat >> "${INSTALL_PREFIX}/packages.conf" <<EOF
 HAPROXY_TARGET_VERSION=${HAPROXY_VERSION}
 KEEPALIVED_TARGET_VERSION=${KEEPALIVED_VERSION}
 EOF
+    fi
     info "Wrote ${INSTALL_PREFIX}/packages.conf"
 }
 
 install_aux_packages() {
     case "${PKG_MANAGER}" in
         apt)
-            pkg_install socat rsyslog logrotate procps ca-certificates curl iproute2
+            pkg_install socat rsyslog logrotate procps ca-certificates iproute2
+            if ! command -v curl &>/dev/null; then
+                pkg_install curl
+            fi
             ;;
         dnf|yum)
-            pkg_install socat rsyslog logrotate procps-ng ca-certificates curl
+            pkg_install socat rsyslog logrotate procps-ng ca-certificates
+            if ! command -v ip &>/dev/null; then
+                ${PKG_MANAGER} install -y iproute 2>/dev/null || true
+            fi
+            if ! command -v curl &>/dev/null; then
+                ${PKG_MANAGER} install -y curl-minimal 2>/dev/null || ${PKG_MANAGER} install -y curl
+            fi
             ;;
     esac
 }
