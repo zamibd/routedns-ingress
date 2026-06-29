@@ -104,6 +104,12 @@ render_haproxy() {
     mkdir -p "${RENDER_DIR}"
 
     awk '/server _install_placeholder/ { exit } { print }' "${HAPROXY_TEMPLATE}" > "${out}"
+
+    if [[ "${USE_PROXY_PROTOCOL}" == "yes" ]]; then
+        # Backend ft_dot uses accept-proxy; health checks must send PROXY v2 too
+        sed -i '/tcp-check connect port 853/a\    tcp-check send proxy v2 local 127.0.0.1' "${out}"
+    fi
+
     render_backend_lines >> "${out}"
 
     haproxy -c -f "${out}" >/dev/null

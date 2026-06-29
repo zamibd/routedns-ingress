@@ -76,6 +76,14 @@ option tcp-check
 tcp-check connect port 853
 ```
 
+When `USE_PROXY_PROTOCOL=yes` (backend HAProxy uses `accept-proxy`), rendered configs also include:
+
+```haproxy
+tcp-check send proxy v2 local 127.0.0.1
+```
+
+Without the PROXY health check, ingress probes hit the plain SSL bind and log `WRONG_VERSION_NUMBER`.
+
 Failed backends are automatically removed from rotation. They rejoin when checks pass again.
 
 ## Connection Limits
