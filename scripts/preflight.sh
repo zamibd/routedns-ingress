@@ -143,11 +143,16 @@ preflight_firewall() {
 
 preflight_packages() {
     local conf="${INSTALL_PREFIX}/packages.conf"
-    local latest_flag target_haproxy target_keepalived installed_h installed_k
+    local target_haproxy target_keepalived installed_h installed_k
 
-    [[ -f "${conf}" ]] || return
-    latest_flag="$(awk -F= '/^INSTALL_LATEST_PACKAGES=/ {print $2; exit}' "${conf}")"
-    [[ "${latest_flag}" == "yes" ]] || return
+    if [[ ! -f "${conf}" ]] || ! grep -q '^INSTALL_LATEST_PACKAGES=yes' "${conf}"; then
+        return 0
+    fi
+
+    if ! command -v parse_haproxy_version &>/dev/null || ! command -v parse_keepalived_version &>/dev/null; then
+        fail_check "Latest package helpers missing from ${INSTALL_PREFIX}/lib.sh — re-run: sudo make setup"
+        return
+    fi
 
     target_haproxy="$(awk -F= '/^HAPROXY_TARGET_VERSION=/ {print $2; exit}' "${conf}")"
     target_keepalived="$(awk -F= '/^KEEPALIVED_TARGET_VERSION=/ {print $2; exit}' "${conf}")"

@@ -64,7 +64,10 @@ validate() {
     check "Logrotate config installed" test -f /etc/logrotate.d/routedns-ingress
     check "Logrotate postrotate helper exists" test -x "${INSTALL_PREFIX}/logrotate-postrotate.sh"
 
-    if [[ -x "${preflight_script}" ]] && ! SKIP_KEEPALIVED="${skip_keepalived}" "${preflight_script}" &>/dev/null; then
+    if [[ -x "${preflight_script}" ]] && ! \
+        SKIP_KEEPALIVED="${skip_keepalived}" \
+        SKIP_FIREWALL_PREFLIGHT="${SKIP_FIREWALL_PREFLIGHT:-false}" \
+        "${preflight_script}" &>/dev/null; then
         warn "WARN: Production preflight not passed — run: sudo make preflight"
         WARNINGS=$((WARNINGS + 1))
     fi
