@@ -103,12 +103,19 @@ render_haproxy() {
     local out="${RENDER_DIR}/haproxy.cfg"
     mkdir -p "${RENDER_DIR}"
 
-    awk '/server _install_placeholder/ { exit } { print }' "${HAPROXY_TEMPLATE}" > "${out}"
+    local add_proxy_check="no"
+    # Backend ft_dot uses accept-proxy; health checks must send PROXY v2 too.
+    [[ "${USE_PROXY_PROTOCOL}" == "yes" ]] && add_proxy_check="yes"
 
-    if [[ "${USE_PROXY_PROTOCOL}" == "yes" ]]; then
-        # Backend ft_dot uses accept-proxy; health checks must send PROXY v2 too
-        sed -i '/tcp-check connect port 853/a\    tcp-check send proxy v2 local 127.0.0.1' "${out}"
-    fi
+    # Copy template up to the placeholder, optionally appending the PROXY health
+    # check right after the tcp-check connect line. awk is portable (no sed -i).
+    awk -v add="${add_proxy_check}" '
+        /server _install_placeholder/ { exit }
+        { print }
+        add == "yes" && /^[[:space:]]*tcp-check connect port 853[[:space:]]*$/ {
+            print "    tcp-check send proxy v2 local 127.0.0.1"
+        }
+    ' "${HAPROXY_TEMPLATE}" > "${out}"
 
     render_backend_lines >> "${out}"
 
@@ -128,9 +135,12 @@ render_keepalived() {
         -e "s|CHANGE_ME_VIP/CHANGE_ME_VIP_PREFIX|${VIP}/${VIP_PREFIX}|g" \
         "${src}" > "${out}"
 
-    install_keepalived_scripts "${ROOT}"
-
-    keepalived -t -f "${out}"
+    if command -v keepalived &>/dev/null; then
+        install_keepalived_scripts "${ROOT}"
+        keepalived -t -f "${out}"
+    else
+        warn "Keepalived not installed; rendered ${out} without validation."
+    fi
     info "Rendered ${out} (role=${ROLE})"
 }
 
