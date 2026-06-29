@@ -29,8 +29,17 @@ install_keepalived() {
     esac
 
     info "Installing Keepalived (${KEEPALIVED_ROLE})..."
-    pkg_update
-    pkg_install keepalived
+    # When INSTALL_LATEST_PACKAGES=yes, install-packages.sh already provided
+    # Keepalived (built from source). Re-running apt here would overwrite that
+    # binary with the older distro package, so only install when needed.
+    if [[ "${INSTALL_LATEST_PACKAGES:-no}" =~ ^(yes|true|1)$ ]]; then
+        command -v keepalived &>/dev/null || \
+            die "INSTALL_LATEST_PACKAGES=${INSTALL_LATEST_PACKAGES} but keepalived not found — run scripts/install-packages.sh first."
+        info "Using existing Keepalived $(parse_keepalived_version) (latest packages mode)."
+    else
+        pkg_update
+        pkg_install keepalived
+    fi
 
     install_scripts
 

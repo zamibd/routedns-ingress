@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - HAProxy 3.4 compatibility: use `check-send-proxy` on server lines instead of removed `tcp-check send proxy v2`
+- `install-haproxy.sh`/`install-keepalived.sh` no longer overwrite source/backports builds with the older distro package when `INSTALL_LATEST_PACKAGES=yes` (Keepalived 2.4.1 was being clobbered by Debian's 2.3.3)
+- Removed stray leading whitespace before the shebang in `install-keepalived.sh`
 
 ### Added
 

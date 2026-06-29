@@ -11,8 +11,17 @@ install_haproxy() {
     detect_os
 
     info "Installing HAProxy..."
-    pkg_update
-    pkg_install haproxy
+    # When INSTALL_LATEST_PACKAGES=yes, install-packages.sh already provided
+    # HAProxy (from backports or built from source). Re-running apt/dnf here
+    # could overwrite that with the older distro package, so skip when present.
+    if [[ "${INSTALL_LATEST_PACKAGES:-no}" =~ ^(yes|true|1)$ ]]; then
+        command -v haproxy &>/dev/null || \
+            die "INSTALL_LATEST_PACKAGES=${INSTALL_LATEST_PACKAGES} but haproxy not found — run scripts/install-packages.sh first."
+        info "Using existing HAProxy $(parse_haproxy_version) (latest packages mode)."
+    else
+        pkg_update
+        pkg_install haproxy
+    fi
 
     # Ensure runtime directories exist
     mkdir -p /run/haproxy
