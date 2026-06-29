@@ -28,19 +28,18 @@ keepalived_test_config() {
 }
 
 install_test_packages() {
-    step "Detecting OS..."
-    detect_os
+    step "Detecting OS and installing packages..."
+    export INSTALL_LATEST_PACKAGES="${INSTALL_LATEST_PACKAGES:-no}"
+    export HAPROXY_VERSION="${HAPROXY_VERSION:-3.4.1}"
+    export KEEPALIVED_VERSION="${KEEPALIVED_VERSION:-2.4.1}"
 
-    step "Installing packages (${PKG_MANAGER})..."
-    pkg_update
+    # shellcheck source=scripts/install-packages.sh
+    source "${ROOT}/scripts/install-packages.sh"
+    install_packages
 
     case "${PKG_MANAGER}" in
-        apt)
-            pkg_install haproxy keepalived socat make ca-certificates netcat-openbsd
-            ;;
-        dnf|yum)
-            pkg_install haproxy keepalived socat make nc
-            ;;
+        apt) pkg_install make netcat-openbsd ;;
+        dnf|yum) pkg_install make nc ;;
     esac
 }
 

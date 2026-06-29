@@ -13,13 +13,21 @@ step() { info "==> $*"; }
 run_setup() {
     require_root
 
+    local setup_env="${ROOT}/.env"
+    if [[ -f "${setup_env}" ]]; then
+        # shellcheck source=/dev/null
+        source "${setup_env}"
+    fi
+    export INSTALL_LATEST_PACKAGES="${INSTALL_LATEST_PACKAGES:-no}"
+    if [[ "${INSTALL_LATEST_PACKAGES}" == "yes" ]]; then
+        export HAPROXY_VERSION="${HAPROXY_VERSION:-3.4.1}"
+        export KEEPALIVED_VERSION="${KEEPALIVED_VERSION:-2.4.1}"
+    fi
+
     step "Installing packages and system tuning..."
-    detect_os
-    pkg_update
-    case "${PKG_MANAGER}" in
-        apt) pkg_install haproxy keepalived socat rsyslog logrotate procps ;;
-        dnf|yum) pkg_install haproxy keepalived socat rsyslog logrotate procps-ng ;;
-    esac
+    # shellcheck source=scripts/install-packages.sh
+    source "${ROOT}/scripts/install-packages.sh"
+    install_packages
 
     step "Loading and rendering configuration from .env..."
     # shellcheck source=scripts/render-config.sh

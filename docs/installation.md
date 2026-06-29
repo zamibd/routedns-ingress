@@ -59,6 +59,47 @@ sudo ./install.sh --role master --firewall-reset
 
 On AlmaLinux, `--firewall` configures firewalld (ssh + 853/tcp).
 
+## Latest upstream packages (optional)
+
+By default, `make setup` installs **HAProxy** and **Keepalived** from your distro repositories (recommended for most deployments).
+
+To install pinned upstream versions (**HAProxy 3.4.1**, **Keepalived 2.4.1**), set in `.env`:
+
+```bash
+INSTALL_LATEST_PACKAGES=yes
+HAPROXY_VERSION=3.4.1
+KEEPALIVED_VERSION=2.4.1
+```
+
+Then run `sudo make setup` as usual.
+
+| OS | HAProxy 3.4.1 | Keepalived 2.4.1 |
+|----|---------------|------------------|
+| Debian 13 | [haproxy.debian.net](https://haproxy.debian.net/) backports | Source build |
+| Ubuntu 24.04 / 25.04 | Source build | Source build |
+| Ubuntu 25.10 | PPA `vbernat/haproxy-3.4` | Source build |
+| AlmaLinux | Source build | Source build |
+
+Or use the installer flag:
+
+```bash
+sudo ./install.sh --role master --latest-packages
+```
+
+Verify after install:
+
+```bash
+haproxy -v | head -1
+keepalived -v 2>&1 | head -1
+sudo make preflight
+```
+
+Test locally (requires root):
+
+```bash
+sudo make test-latest-packages
+```
+
 ## What the Installer Does
 
 1. Detects OS and architecture

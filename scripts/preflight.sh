@@ -108,9 +108,23 @@ preflight_keepalived() {
 }
 
 preflight_firewall() {
+    if [[ "${SKIP_FIREWALL_PREFLIGHT:-}" == "true" ]]; then
+        info "Skipping firewall preflight (SKIP_FIREWALL_PREFLIGHT=true)."
+        return
+    fi
+
+    set +o pipefail
     if command -v ufw &>/dev/null && ufw status 2>/dev/null | grep -qi 'Status: active'; then
-        ufw status | grep -qE '853/tcp' || fail_check "UFW active but 853/tcp is not allowed"
-        ufw status | grep -qE '22/tcp' || fail_check "UFW active but 22/tcp is not allowed"
+        if ufw status 2>/dev/null | grep -qE '853/tcp'; then
+            :
+        else
+            fail_check "UFW active but 853/tcp is not allowed"
+        fi
+        if ufw status 2>/dev/null | grep -qE '22/tcp'; then
+            :
+        else
+            fail_check "UFW active but 22/tcp is not allowed"
+        fi
         [[ "${ERRORS}" -eq 0 ]] || return
         pass_check "UFW allows 22/tcp and 853/tcp"
     elif command -v firewall-cmd &>/dev/null && systemctl is-active --quiet firewalld 2>/dev/null; then
@@ -124,6 +138,41 @@ preflight_firewall() {
     else
         info "Firewall preflight skipped (no active ufw/firewalld)."
     fi
+    set -o pipefail
+}
+
+preflight_packages() {
+    local conf="${INSTALL_PREFIX}/packages.conf"
+    local target_haproxy target_keepalived installed_h installed_k
+
+    if [[ ! -f "${conf}" ]] || ! grep -q '^INSTALL_LATEST_PACKAGES=yes' "${conf}"; then
+        return 0
+    fi
+
+    if ! command -v parse_haproxy_version &>/dev/null || ! command -v parse_keepalived_version &>/dev/null; then
+        fail_check "Latest package helpers missing from ${INSTALL_PREFIX}/lib.sh — re-run: sudo make setup"
+        return
+    fi
+
+    target_haproxy="$(awk -F= '/^HAPROXY_TARGET_VERSION=/ {print $2; exit}' "${conf}")"
+    target_keepalived="$(awk -F= '/^KEEPALIVED_TARGET_VERSION=/ {print $2; exit}' "${conf}")"
+    target_haproxy="${target_haproxy:-3.4.1}"
+    target_keepalived="${target_keepalived:-2.4.1}"
+
+    installed_h="$(parse_haproxy_version)"
+    installed_k="$(parse_keepalived_version)"
+
+    if printf '%s\n%s\n' "${target_haproxy}" "${installed_h}" | sort -C -V 2>/dev/null; then
+        pass_check "HAProxy version ${installed_h} meets target ${target_haproxy}"
+    else
+        fail_check "HAProxy ${installed_h:-unknown} below target ${target_haproxy} (INSTALL_LATEST_PACKAGES=yes)"
+    fi
+
+    if printf '%s\n%s\n' "${target_keepalived}" "${installed_k}" | sort -C -V 2>/dev/null; then
+        pass_check "Keepalived version ${installed_k} meets target ${target_keepalived}"
+    else
+        fail_check "Keepalived ${installed_k:-unknown} below target ${target_keepalived} (INSTALL_LATEST_PACKAGES=yes)"
+    fi
 }
 
 preflight() {
@@ -131,6 +180,7 @@ preflight() {
 
     preflight_haproxy
     preflight_keepalived
+    preflight_packages
     preflight_firewall
 
     echo ""

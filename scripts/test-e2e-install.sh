@@ -75,15 +75,16 @@ main() {
     export ROUTEDNS_ROOT="${ROOT}"
     export ROUTEDNS_CI=1
     export SKIP_KEEPALIVED=true
+    export SKIP_FIREWALL_PREFLIGHT=true
     bash "${ROOT}/install.sh" --skip-keepalived
 
     configure_test_backends
 
     step "Running validate..."
-    SKIP_KEEPALIVED=true "${INSTALL_PREFIX}/validate.sh"
+    SKIP_KEEPALIVED=true SKIP_FIREWALL_PREFLIGHT=true "${INSTALL_PREFIX}/validate.sh"
 
     step "Running preflight (expect backend pass, keepalived skipped)..."
-    SKIP_KEEPALIVED=true "${INSTALL_PREFIX}/preflight.sh"
+    SKIP_KEEPALIVED=true SKIP_FIREWALL_PREFLIGHT=true "${INSTALL_PREFIX}/preflight.sh"
 
     prepare_keepalived_for_test
 

@@ -19,6 +19,14 @@ info() { log "INFO: $*"; }
 warn() { log "WARN: $*" >&2; }
 die()  { log "ERROR: $*" >&2; exit 1; }
 
+parse_haproxy_version() {
+    haproxy -v 2>&1 | sed -n '1s/^HAProxy version \([0-9]\+\.[0-9]\+\.[0-9]\+\).*/\1/p'
+}
+
+parse_keepalived_version() {
+    keepalived -v 2>&1 | sed -n '1s/^Keepalived v\([0-9]\+\.[0-9]\+\.[0-9]\+\).*/\1/p'
+}
+
 require_root() {
     [[ "${EUID:-$(id -u)}" -eq 0 ]] || die "This script must be run as root."
 }

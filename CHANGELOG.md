@@ -5,6 +5,17 @@ All notable changes to routedns-ingress are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **`INSTALL_LATEST_PACKAGES`** in `.env` — opt-in HAProxy 3.4.1 + Keepalived 2.4.1
+- **`scripts/install-packages.sh`** — distro default or pinned latest (repo/source per OS)
+- **`--latest-packages`** flag on `install.sh`
+- **`make test-latest-packages`** and **Latest Packages** CI workflow
+- Preflight checks for package versions when latest install is enabled
+- Systemd unit templates for source-built HAProxy/Keepalived
+
 ## [1.2.0] - 2026-06-29
 
 ### Added

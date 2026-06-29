@@ -117,7 +117,7 @@ See [docs/setup.md](docs/setup.md) for full setup guide.
 | Ubuntu | 24.04, 25.04, 25.10 | amd64, arm64 |
 | AlmaLinux | All | amd64, arm64 |
 
-Native packages only. No Docker, no Kubernetes.
+Native packages by default. Optional latest upstream via `INSTALL_LATEST_PACKAGES=yes` in `.env`.
 
 ## CI
 
@@ -125,6 +125,7 @@ Native packages only. No Docker, no Kubernetes.
 |----------|---------|
 | [CI](.github/workflows/ci.yml) | ShellCheck, config validation, Makefile |
 | [Platform Tests](.github/workflows/platform-test.yml) | Debian 13, Ubuntu 24.04/25.04, AlmaLinux 9/10 on amd64 + arm64 |
+| [Latest Packages](.github/workflows/latest-packages.yml) | HAProxy 3.4.1 + Keepalived 2.4.1 install path |
 | [E2E Install](.github/workflows/e2e-install.yml) | Full install + TCP path test with systemd |
 | [Release](.github/workflows/release.yml) | Tagged releases (`v*.*.*`) |
 
@@ -133,6 +134,7 @@ Run locally:
 ```bash
 make ci                              # lint + haproxy config test
 sudo make test-platform              # platform test (on target OS)
+sudo make test-latest-packages       # latest HAProxy + Keepalived path
 sudo make test-e2e                   # full E2E install test (systemd required)
 sudo make preflight                  # production gate before go-live
 ```
