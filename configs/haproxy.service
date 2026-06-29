@@ -1,0 +1,23 @@
+# routedns-ingress — systemd unit for HAProxy (source installs)
+# Distro packages ship their own unit; this is used when building HAProxy from source.
+
+[Unit]
+Description=HAProxy Load Balancer
+Documentation=man:haproxy(1)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+EnvironmentFile=-/etc/default/haproxy
+EnvironmentFile=-/etc/sysconfig/haproxy
+Environment="CONFIG=/etc/haproxy/haproxy.cfg" "PIDFILE=/run/haproxy.pid"
+ExecStart=/usr/sbin/haproxy -Ws -f $CONFIG -p $PIDFILE $EXTRAOPTS
+ExecReload=/usr/sbin/haproxy -Ws -f $CONFIG -c -q $EXTRAOPTS
+ExecReload=/bin/kill -USR2 $MAINPID
+KillMode=mixed
+Restart=always
+SuccessExitStatus=143
+Type=notify
+
+[Install]
+WantedBy=multi-user.target

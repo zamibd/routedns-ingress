@@ -21,6 +21,7 @@ KEEPALIVED_ROLE=""
 CONFIGURE_FIREWALL=false
 FIREWALL_RESET=false
 SKIP_KEEPALIVED=false
+INSTALL_LATEST_PACKAGES="${INSTALL_LATEST_PACKAGES:-no}"
 
 usage() {
     cat <<'EOF'
@@ -34,6 +35,7 @@ Options:
   --firewall-reset         With --firewall: reset UFW rules first (destructive)
   --ufw                    Alias for --firewall (deprecated)
   --skip-keepalived        Install HAProxy only (no Keepalived/VIP)
+  --latest-packages        Install HAProxy 3.4.1 + Keepalived 2.4.1 (see INSTALL_LATEST_PACKAGES)
   -h, --help               Show this help
 
 Examples:
@@ -68,6 +70,10 @@ parse_args() {
                 ;;
             --skip-keepalived)
                 SKIP_KEEPALIVED=true
+                shift
+                ;;
+            --latest-packages)
+                INSTALL_LATEST_PACKAGES=yes
                 shift
                 ;;
             -h|--help)
@@ -134,13 +140,13 @@ main() {
     fi
 
     info "Starting routedns-ingress installation..."
-    detect_os
+    export INSTALL_LATEST_PACKAGES="${INSTALL_LATEST_PACKAGES:-no}"
+    export HAPROXY_VERSION="${HAPROXY_VERSION:-3.4.1}"
+    export KEEPALIVED_VERSION="${KEEPALIVED_VERSION:-2.4.1}"
 
-    pkg_update
-    case "${PKG_MANAGER}" in
-        apt) pkg_install haproxy keepalived socat rsyslog logrotate procps ;;
-        dnf|yum) pkg_install haproxy keepalived socat rsyslog logrotate ;;
-    esac
+    # shellcheck source=scripts/install-packages.sh
+    source "${ROOT}/scripts/install-packages.sh"
+    install_packages
 
     install_scripts
 

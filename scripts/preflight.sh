@@ -126,11 +126,40 @@ preflight_firewall() {
     fi
 }
 
+preflight_packages() {
+    local conf="${INSTALL_PREFIX}/packages.conf"
+    local target_haproxy target_keepalived installed_h installed_k
+
+    [[ -f "${conf}" ]] || return
+    # shellcheck source=/dev/null
+    source "${conf}"
+
+    [[ "${INSTALL_LATEST_PACKAGES}" == "yes" ]] || return
+
+    target_haproxy="${HAPROXY_TARGET_VERSION:-3.4.1}"
+    target_keepalived="${KEEPALIVED_TARGET_VERSION:-2.4.1}"
+    installed_h="$(haproxy -v 2>&1 | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || true)"
+    installed_k="$(keepalived -v 2>&1 | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || true)"
+
+    if printf '%s\n%s\n' "${target_haproxy}" "${installed_h}" | sort -C -V 2>/dev/null; then
+        pass_check "HAProxy version ${installed_h} meets target ${target_haproxy}"
+    else
+        fail_check "HAProxy ${installed_h:-unknown} below target ${target_haproxy} (INSTALL_LATEST_PACKAGES=yes)"
+    fi
+
+    if printf '%s\n%s\n' "${target_keepalived}" "${installed_k}" | sort -C -V 2>/dev/null; then
+        pass_check "Keepalived version ${installed_k} meets target ${target_keepalived}"
+    else
+        fail_check "Keepalived ${installed_k:-unknown} below target ${target_keepalived} (INSTALL_LATEST_PACKAGES=yes)"
+    fi
+}
+
 preflight() {
     info "Running production preflight checks..."
 
     preflight_haproxy
     preflight_keepalived
+    preflight_packages
     preflight_firewall
 
     echo ""

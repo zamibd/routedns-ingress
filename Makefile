@@ -134,7 +134,7 @@ stats: ## Show HAProxy stats via admin socket
 # Development / CI
 # ---------------------------------------------------------------------------
 
-.PHONY: lint test-config test-platform test-e2e ci ci-all
+.PHONY: lint test-config test-platform test-latest-packages test-e2e ci ci-all
 lint: ## Run ShellCheck on all scripts
 	@command -v shellcheck >/dev/null || { echo "Install shellcheck first"; exit 1; }
 	shellcheck -S warning $(ROOT)/scripts/*.sh $(ROOT)/install.sh $(ROOT)/uninstall.sh
@@ -149,6 +149,10 @@ test-config: ## Validate bundled haproxy.cfg (local, no install)
 
 test-platform: ## Run platform compatibility tests (requires root)
 	$(SUDO) $(SCRIPTS)/test-platform.sh
+
+test-latest-packages: ## Platform test with HAProxy 3.4.1 + Keepalived 2.4.1 (requires root)
+	$(SUDO) env INSTALL_LATEST_PACKAGES=yes HAPROXY_VERSION=3.4.1 KEEPALIVED_VERSION=2.4.1 \
+		$(SCRIPTS)/test-platform.sh
 
 test-e2e: ## Run full E2E install test with systemd (requires root)
 	$(SUDO) $(SCRIPTS)/test-e2e-install.sh

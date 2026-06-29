@@ -1,0 +1,18 @@
+# routedns-ingress — systemd unit for Keepalived (source installs)
+# Distro packages ship their own unit; this is used when building Keepalived from source.
+
+[Unit]
+Description=Keepalive Daemon (LVS and VRRP)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=forking
+PIDFile=/run/keepalived.pid
+KillMode=process
+EnvironmentFile=-/etc/default/keepalived
+ExecStart=/usr/sbin/keepalived --dont-fork $DAEMON_ARGS
+ExecReload=/bin/kill -HUP $MAINPID
+
+[Install]
+WantedBy=multi-user.target

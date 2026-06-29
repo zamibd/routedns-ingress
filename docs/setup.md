@@ -34,6 +34,9 @@ Optional (auto-detected if empty):
 | `BACKEND_PORT` | 853 |
 | `USE_PROXY_PROTOCOL` | yes |
 | `CONFIGURE_FIREWALL` | yes |
+| `INSTALL_LATEST_PACKAGES` | no (set `yes` for HAProxy 3.4.1 + Keepalived 2.4.1) |
+| `HAPROXY_VERSION` | 3.4.1 (when `INSTALL_LATEST_PACKAGES=yes`) |
+| `KEEPALIVED_VERSION` | 2.4.1 (when `INSTALL_LATEST_PACKAGES=yes`) |
 
 ### 3. Run setup
 
