@@ -51,6 +51,20 @@ On the secondary ingress node:
 2. Set `ROLE=backup`
 3. Run `sudo make setup`
 
+## Apply config changes after editing `.env`
+
+After changing backends, VIP, or PROXY settings in `.env`, re-render and reload
+in one step (no full reinstall):
+
+```bash
+sudo make apply
+```
+
+`make apply` renders the configs from `.env`, installs the **rendered** files to
+`/etc/haproxy/haproxy.cfg` and `/etc/keepalived/keepalived.conf`, then reloads
+both services. Do not hand-copy `configs/haproxy.cfg` — that is the unrendered
+template (it has no real backends) and `make reload` will refuse it.
+
 ## Re-run setup
 
 Safe to re-run after editing `.env`:

@@ -64,6 +64,7 @@ jobs:
             scripts/validate.sh
             scripts/setup.sh
             scripts/render-config.sh
+            scripts/apply-config.sh
             scripts/preflight.sh
             scripts/test-platform.sh
             scripts/test-e2e-install.sh

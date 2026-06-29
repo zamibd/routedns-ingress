@@ -17,7 +17,8 @@ help: ## Show this help
 	@printf '\nroutedns-ingress\n\n  Quick start:\n'
 	@printf '    make init\n'
 	@printf '    edit .env  (3 backend IPs + VIP + role)\n'
-	@printf '    sudo make setup\n\n'
+	@printf '    sudo make setup            # first-time full install\n'
+	@printf '    sudo make apply            # after editing .env (re-render + reload)\n\n'
 	@printf 'Targets:\n'
 	@grep -E '^[a-zA-Z0-9_.-]+:.*##' $(MAKEFILE_LIST) | \
 		awk 'BEGIN {FS = ":.*## "}; {printf "  %-22s %s\n", $$1, $$2}'
@@ -27,7 +28,7 @@ help: ## Show this help
 # Production setup (recommended)
 # ---------------------------------------------------------------------------
 
-.PHONY: init setup render
+.PHONY: init setup render apply
 init: ## Create .env from .env.example
 	@if [ -f "$(SETUP_ENV)" ]; then \
 		echo ".env already exists"; \
@@ -39,6 +40,10 @@ init: ## Create .env from .env.example
 setup: ## Full A-Z production setup (install, configure, validate, preflight)
 	@test -f "$(SETUP_ENV)" || { echo "Run: make init && edit .env"; exit 1; }
 	$(SUDO) bash $(SCRIPTS)/setup.sh
+
+apply: ## Re-render from .env and apply live (install rendered configs + reload)
+	@test -f "$(SETUP_ENV)" || { echo "Run: make init && edit .env"; exit 1; }
+	$(SUDO) bash $(SCRIPTS)/apply-config.sh
 
 render: ## Render configs from .env only (no install)
 	@test -f "$(SETUP_ENV)" || { echo "Run: make init"; exit 1; }
