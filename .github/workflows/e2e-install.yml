@@ -11,6 +11,9 @@ concurrency:
   group: e2e-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   e2e-install:
     name: ${{ matrix.name }}
@@ -34,7 +37,7 @@ jobs:
         run: |
           set -euo pipefail
           docker pull "${{ matrix.image }}"
-          cid="$(          docker run -d --privileged \
+          cid="$(docker run -d --privileged \
             --cgroupns=host \
             -v /sys/fs/cgroup:/sys/fs/cgroup:rw \
             -v "${{ github.workspace }}:/src:rw" \
