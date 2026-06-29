@@ -86,7 +86,9 @@ render_backend_lines() {
     local i ip_var ip weight
 
     if [[ "${USE_PROXY_PROTOCOL}" == "yes" ]]; then
-        proxy_flag=" send-proxy-v2"
+        # check-send-proxy: health checks must use PROXY v2 when backends accept-proxy only.
+        # (tcp-check send proxy v2 was removed in HAProxy 3.4.)
+        proxy_flag=" send-proxy-v2 check-send-proxy"
     fi
 
     for i in 1 2 3; do
@@ -103,19 +105,8 @@ render_haproxy() {
     local out="${RENDER_DIR}/haproxy.cfg"
     mkdir -p "${RENDER_DIR}"
 
-    local add_proxy_check="no"
-    # Backend ft_dot uses accept-proxy; health checks must send PROXY v2 too.
-    [[ "${USE_PROXY_PROTOCOL}" == "yes" ]] && add_proxy_check="yes"
-
-    # Copy template up to the placeholder, optionally appending the PROXY health
-    # check right after the tcp-check connect line. awk is portable (no sed -i).
-    awk -v add="${add_proxy_check}" '
-        /server _install_placeholder/ { exit }
-        { print }
-        add == "yes" && /^[[:space:]]*tcp-check connect port 853[[:space:]]*$/ {
-            print "    tcp-check send proxy v2 local 127.0.0.1"
-        }
-    ' "${HAPROXY_TEMPLATE}" > "${out}"
+    # Copy template up to the placeholder (awk is portable; no sed -i).
+    awk '/server _install_placeholder/ { exit } { print }' "${HAPROXY_TEMPLATE}" > "${out}"
 
     render_backend_lines >> "${out}"
 

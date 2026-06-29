@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- HAProxy 3.4 compatibility: use `check-send-proxy` on server lines instead of removed `tcp-check send proxy v2`
+
 ### Added
 
 - **`INSTALL_LATEST_PACKAGES`** in `.env` — opt-in HAProxy 3.4.1 + Keepalived 2.4.1
