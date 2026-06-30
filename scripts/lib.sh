@@ -188,6 +188,35 @@ verify_service() {
     fi
 }
 
+ensure_haproxy_systemd_ws() {
+    # HAProxy 3.4+ deprecates master-worker in config; use -Ws in the unit instead.
+    local root unit="" dir
+    root="$(script_dir)"
+
+    for dir in /lib/systemd/system /usr/lib/systemd/system; do
+        if [[ -f "${dir}/haproxy.service" ]]; then
+            unit="${dir}/haproxy.service"
+            break
+        fi
+    done
+
+    if [[ -n "${unit}" ]] && grep -qE 'haproxy.* -Ws\b|haproxy.* -W\b' "${unit}"; then
+        return 0
+    fi
+
+    if [[ -z "${unit}" ]]; then
+        warn "haproxy.service not found; installing routedns-ingress unit."
+    else
+        warn "haproxy.service missing -Ws/-W; installing routedns-ingress unit."
+    fi
+
+    install -o root -g root -m 644 "${root}/configs/haproxy.service" \
+        /lib/systemd/system/haproxy.service 2>/dev/null || \
+        install -o root -g root -m 644 "${root}/configs/haproxy.service" \
+        /usr/lib/systemd/system/haproxy.service
+    systemctl daemon-reload 2>/dev/null || true
+}
+
 apply_sysctl() {
     local src="${1:-$(script_dir)/configs/sysctl-routedns-ingress.conf}"
     install_file "${src}" "/etc/sysctl.d/99-routedns-ingress.conf"

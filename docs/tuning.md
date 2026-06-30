@@ -53,7 +53,7 @@ global
     maxconn 50000
     tune.bufsize 32768
     tune.maxrewrite 1024
-    master-worker
+    # master-worker: use systemd -Ws, not a config keyword (HAProxy 3.4+)
 ```
 
 Adjust `maxconn` based on available RAM. Each connection uses approximately 1–2 KB of buffer memory.
@@ -126,7 +126,7 @@ Ensure kernel limits ≥ HAProxy limits.
 
 ## Reload Performance
 
-Zero-downtime reloads use HAProxy master-worker:
+Zero-downtime reloads use systemd master-worker mode (`haproxy -Ws`):
 
 ```bash
 systemctl reload haproxy

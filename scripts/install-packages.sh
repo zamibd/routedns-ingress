@@ -178,11 +178,7 @@ install_haproxy_from_source() {
     chown haproxy:haproxy /run/haproxy /var/lib/haproxy 2>/dev/null || true
 
     if [[ ! -f /lib/systemd/system/haproxy.service && ! -f /usr/lib/systemd/system/haproxy.service ]]; then
-        install -o root -g root -m 644 "${ROOT}/configs/haproxy.service" \
-            /lib/systemd/system/haproxy.service 2>/dev/null || \
-            install -o root -g root -m 644 "${ROOT}/configs/haproxy.service" \
-            /usr/lib/systemd/system/haproxy.service
-        systemctl daemon-reload 2>/dev/null || true
+        ensure_haproxy_systemd_ws
     fi
 
     info "HAProxy $(installed_haproxy_version) installed from source."

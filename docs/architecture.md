@@ -36,7 +36,7 @@ The ingress operates purely at Layer 4. It does not terminate TLS, parse DNS pac
 - **Binding:** Port 853 (IPv4 and IPv6), with optional PROXY Protocol v2 acceptance.
 - **Balancing:** Least connections (default), round robin, or weighted round robin.
 - **Health checks:** TCP connect checks to backend port 853.
-- **Reload:** Zero-downtime via `master-worker` and `systemctl reload haproxy`.
+- **Reload:** Zero-downtime via systemd `haproxy -Ws` and `systemctl reload haproxy`.
 
 ### Keepalived
 
