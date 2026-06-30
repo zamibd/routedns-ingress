@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove deprecated `master-worker` and `daemon` from HAProxy config; master-worker mode is enabled via systemd `-Ws`
 - Keepalived FAULT when VIP equals interface primary IP: auto-use VRRP address owner (priority 255); optional `VRRP_PEER` unicast for cloud HA
 - Address owner mode: omit `weight` on `vrrp_script` so `keepalived -t` passes (weighted track_script is invalid at priority 255)
+- Pin VRRP source IP (`mcast_src_ip`/`unicast_src_ip`) so Keepalived stops faulting with "no IPv4 address for interface" when VIP equals the node's only interface address
 - `install-haproxy.sh`/`install-keepalived.sh` no longer overwrite source/backports builds with the older distro package when `INSTALL_LATEST_PACKAGES=yes` (Keepalived 2.4.1 was being clobbered by Debian's 2.3.3)
 - Source-build Keepalived systemd unit: removed `--dont-fork` which conflicted with `Type=forking` and caused the service to time out on start
 - Removed stray leading whitespace before the shebang in `install-keepalived.sh`
