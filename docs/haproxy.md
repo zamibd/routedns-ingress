@@ -116,7 +116,7 @@ Admin socket: `/run/haproxy/admin.sock`
 
 ## Zero-Downtime Reload
 
-HAProxy uses `master-worker` mode for graceful reloads:
+HAProxy runs in master-worker mode via systemd (`haproxy -Ws` in the unit file). Do not put `master-worker` or `daemon` in `haproxy.cfg` — those keywords are deprecated/removed in HAProxy 3.4+.
 
 ```bash
 # Validate first

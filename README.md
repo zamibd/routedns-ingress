@@ -316,7 +316,7 @@ No. Pure Layer-4 forwarding only.
 Add a `server` line to `/etc/haproxy/haproxy.cfg` and run `systemctl reload haproxy`.
 
 **How do I achieve zero-downtime config changes?**
-Use `systemctl reload haproxy`. HAProxy master-worker mode preserves existing connections.
+Use `systemctl reload haproxy`. The systemd unit starts HAProxy with `-Ws` (master-worker mode), so reloads preserve existing connections.
 
 **Can I run without Keepalived?**
 Yes. Use `sudo ./install.sh --skip-keepalived` for single-node deployment.

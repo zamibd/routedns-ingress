@@ -27,6 +27,8 @@ install_haproxy() {
     mkdir -p /run/haproxy
     chown haproxy:haproxy /run/haproxy 2>/dev/null || true
 
+    ensure_haproxy_systemd_ws
+
     local src="${HAPROXY_CONFIG_SRC:-${ROOT}/configs/haproxy.cfg}"
     [[ -f "${src}" ]] || die "HAProxy config not found: ${src}"
 

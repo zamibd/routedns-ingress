@@ -16,7 +16,7 @@ if ! haproxy -c -f "${HAPROXY_CFG}" &>/dev/null; then
     exit 1
 fi
 
-# Stats socket must respond (confirms master-worker process is running)
+# Stats socket must respond (confirms HAProxy master-worker process is running via -Ws)
 if [[ -S "${ADMIN_SOCK}" ]]; then
     if echo "show info" | socat stdio "${ADMIN_SOCK}" 2>/dev/null | grep -q "Name:"; then
         exit 0
