@@ -47,6 +47,8 @@ load_setup_env() {
     CONFIGURE_FIREWALL="${CONFIGURE_FIREWALL:-yes}"
     VRRP_SECRET="${VRRP_SECRET:-}"
     INTERFACE="${INTERFACE:-}"
+    NODE_IP="${NODE_IP:-}"
+    VRRP_PEER="${VRRP_PEER:-}"
 
     [[ -n "${BACKEND_1}" && -n "${BACKEND_2}" && -n "${BACKEND_3}" ]] || \
         die "Set BACKEND_1, BACKEND_2, BACKEND_3 in ${SETUP_ENV}"
@@ -79,6 +81,50 @@ load_setup_env() {
     fi
 
     [[ "${#VRRP_SECRET}" -le 8 ]] || die "VRRP_SECRET must be max 8 characters (Keepalived limit)"
+
+    if [[ -n "${NODE_IP}" ]]; then
+        is_valid_ip "${NODE_IP}" || die "Invalid NODE_IP: ${NODE_IP}"
+    fi
+    if [[ -n "${VRRP_PEER}" ]]; then
+        is_valid_ip "${VRRP_PEER}" || die "Invalid VRRP_PEER: ${VRRP_PEER}"
+    fi
+}
+
+resolve_keepalived_vrrp() {
+    if [[ -z "${NODE_IP}" ]]; then
+        NODE_IP="$(detect_node_ip "${INTERFACE}")"
+    fi
+    [[ -n "${NODE_IP}" ]] || die "No IPv4 on ${INTERFACE} — set NODE_IP in ${SETUP_ENV}"
+
+    if [[ "${VIP}" == "${NODE_IP}" ]]; then
+        if [[ "${ROLE}" == "master" ]]; then
+            # VIP is this host's primary IP (common on single-node / cloud primary IP).
+            # Priority 255 = VRRP address owner; avoids FAULT when no other source IP exists.
+            VRRP_PRIORITY=255
+            info "VIP ${VIP} is this node's interface IP — using VRRP address owner (priority 255)"
+        else
+            VRRP_PRIORITY=90
+            warn "VIP equals NODE_IP on backup — VIP should be a floating IP, not this host's primary"
+        fi
+    else
+        case "${ROLE}" in
+            master) VRRP_PRIORITY=100 ;;
+            backup) VRRP_PRIORITY=90 ;;
+        esac
+    fi
+
+    KEEPALIVED_UNICAST_SNIP="${RENDER_DIR}/.keepalived-unicast.snip"
+    if [[ -n "${VRRP_PEER}" ]]; then
+        cat > "${KEEPALIVED_UNICAST_SNIP}" <<EOF
+    unicast_src_ip ${NODE_IP}
+    unicast_peer {
+        ${VRRP_PEER}
+    }
+EOF
+        info "VRRP unicast enabled: ${NODE_IP} <-> ${VRRP_PEER}"
+    else
+        : > "${KEEPALIVED_UNICAST_SNIP}"
+    fi
 }
 
 render_backend_lines() {
@@ -119,12 +165,21 @@ render_keepalived() {
     [[ "${ROLE}" == "backup" ]] && src="${KEEPALIVED_BACKUP}"
     local out="${RENDER_DIR}/keepalived.conf"
 
+    resolve_keepalived_vrrp
+
     mkdir -p "${RENDER_DIR}"
     sed \
         -e "s/CHANGE_ME_INTERFACE/${INTERFACE}/g" \
         -e "s/CHANGE_ME_VRRP_SECRET/${VRRP_SECRET}/g" \
+        -e "s/CHANGE_ME_PRIORITY/${VRRP_PRIORITY}/g" \
         -e "s|CHANGE_ME_VIP/CHANGE_ME_VIP_PREFIX|${VIP}/${VIP_PREFIX}|g" \
-        "${src}" > "${out}"
+        "${src}" | awk -v snip="${KEEPALIVED_UNICAST_SNIP}" '
+        /CHANGE_ME_UNICAST/ {
+            while ((getline line < snip) > 0) print line
+            next
+        }
+        { print }
+    ' > "${out}"
 
     if command -v keepalived &>/dev/null; then
         install_keepalived_scripts "${ROOT}"
@@ -132,7 +187,7 @@ render_keepalived() {
     else
         warn "Keepalived not installed; rendered ${out} without validation."
     fi
-    info "Rendered ${out} (role=${ROLE})"
+    info "Rendered ${out} (role=${ROLE}, priority=${VRRP_PRIORITY})"
 }
 
 render_configs() {

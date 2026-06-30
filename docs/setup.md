@@ -31,6 +31,8 @@ Optional (auto-detected if empty):
 |----------|---------|
 | `INTERFACE` | Auto-detected from default route |
 | `VRRP_SECRET` | Auto-generated (saved to `.env`) |
+| `NODE_IP` | Auto-detected primary IPv4 on `INTERFACE` |
+| `VRRP_PEER` | Empty (set peer primary IP for cloud unicast VRRP) |
 | `BACKEND_PORT` | 853 |
 | `USE_PROXY_PROTOCOL` | yes |
 | `CONFIGURE_FIREWALL` | yes |

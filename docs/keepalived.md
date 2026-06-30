@@ -74,6 +74,23 @@ virtual_ipaddress {
 }
 ```
 
+On cloud providers, use `/32` for floating/reserved IPs (`VIP_PREFIX=32` in `.env`).
+
+### VIP equals node primary IP (single node / address owner)
+
+When the VIP is the same as this host's primary IP on `INTERFACE` (typical single Vultr instance), Keepalived must use **priority 255** (VRRP address owner). `render-config.sh` sets this automatically. Without it, Keepalived enters FAULT: `no IPv4 address for interface`.
+
+### Cloud HA (unicast VRRP)
+
+Most clouds block VRRP multicast. Set `VRRP_PEER` in `.env` to the other ingress node's **primary** IP:
+
+| Node | `VRRP_PEER` |
+|------|-------------|
+| Master | Backup's primary IP |
+| Backup | Master's primary IP |
+
+Rendered config includes `unicast_src_ip` and `unicast_peer`.
+
 ## Health Check Script
 
 Keepalived tracks HAProxy health via `chk_haproxy`:
