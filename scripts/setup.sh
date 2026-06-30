@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # routedns-ingress — full A-Z production setup
-# Edit .env (3 backend IPs + VIP + role), then: sudo make setup
+# Edit .env (backend IPs + VIP + role), then: sudo make setup
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -72,7 +72,7 @@ run_setup() {
 
   Role:      ${ROLE}
   VIP:       ${VIP}/${VIP_PREFIX} on ${INTERFACE}
-  Backends:  ${BACKEND_1}, ${BACKEND_2}, ${BACKEND_3}:${BACKEND_PORT}
+  Backends:  $(backend_ips_csv):${BACKEND_PORT} (${#BACKEND_IPS[@]} servers)
 
   Verify:
     make status

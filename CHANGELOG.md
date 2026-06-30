@@ -20,8 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Unlimited backend pool via `BACKEND_1`, `BACKEND_2`, ... or `BACKENDS=ip1,ip2,...` in `.env` (replaces fixed 3-backend limit)
 - **`INSTALL_LATEST_PACKAGES`** in `.env` — opt-in HAProxy 3.4.1 + Keepalived 2.4.1
-- **`scripts/install-packages.sh`** — distro default or pinned latest (repo/source per OS)
 - **`--latest-packages`** flag on `install.sh`
 - **`make test-latest-packages`** and **Latest Packages** CI workflow
 - Preflight checks for package versions when latest install is enabled

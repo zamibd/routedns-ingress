@@ -36,9 +36,6 @@ load_setup_env() {
     # shellcheck source=/dev/null
     source "${SETUP_ENV}"
 
-    BACKEND_1="${BACKEND_1:-}"
-    BACKEND_2="${BACKEND_2:-}"
-    BACKEND_3="${BACKEND_3:-}"
     VIP="${VIP:-}"
     VIP_PREFIX="${VIP_PREFIX:-24}"
     ROLE="${ROLE:-master}"
@@ -50,11 +47,12 @@ load_setup_env() {
     NODE_IP="${NODE_IP:-}"
     VRRP_PEER="${VRRP_PEER:-}"
 
-    [[ -n "${BACKEND_1}" && -n "${BACKEND_2}" && -n "${BACKEND_3}" ]] || \
-        die "Set BACKEND_1, BACKEND_2, BACKEND_3 in ${SETUP_ENV}"
+    load_backend_ips
+    [[ ${#BACKEND_IPS[@]} -ge 1 ]] || \
+        die "Set at least one backend in ${SETUP_ENV} (BACKEND_1, BACKEND_2, ... or BACKENDS=ip1,ip2,...)"
     [[ -n "${VIP}" ]] || die "Set VIP in ${SETUP_ENV}"
 
-    for ip in "${BACKEND_1}" "${BACKEND_2}" "${BACKEND_3}" "${VIP}"; do
+    for ip in "${BACKEND_IPS[@]}" "${VIP}"; do
         is_valid_ip "${ip}" || die "Invalid IP address: ${ip}"
     done
 
@@ -139,8 +137,7 @@ EOF
 }
 
 render_backend_lines() {
-    local proxy_flag=""
-    local i ip_var ip weight
+    local proxy_flag="" i ip weight n
 
     if [[ "${USE_PROXY_PROTOCOL}" == "yes" ]]; then
         # check-send-proxy: health checks must use PROXY v2 when backends accept-proxy only.
@@ -148,14 +145,14 @@ render_backend_lines() {
         proxy_flag=" send-proxy-v2 check-send-proxy"
     fi
 
-    for i in 1 2 3; do
-        ip_var="BACKEND_${i}"
-        ip="${!ip_var}"
+    n=${#BACKEND_IPS[@]}
+    for i in "${!BACKEND_IPS[@]}"; do
+        ip="${BACKEND_IPS[$i]}"
         weight=100
-        [[ "${i}" -eq 3 ]] && weight=50
         printf '    server dot%d %s:%s check inter 5s fall 3 rise 2 weight %d%s\n' \
-            "${i}" "${ip}" "${BACKEND_PORT}" "${weight}" "${proxy_flag}"
+            "$((i + 1))" "${ip}" "${BACKEND_PORT}" "${weight}" "${proxy_flag}"
     done
+    info "Rendered ${n} backend server line(s)"
 }
 
 render_haproxy() {

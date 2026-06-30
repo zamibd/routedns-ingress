@@ -16,7 +16,7 @@ SETUP_ENV := $(ROOT)/.env
 help: ## Show this help
 	@printf '\nroutedns-ingress\n\n  Quick start:\n'
 	@printf '    make init\n'
-	@printf '    edit .env  (3 backend IPs + VIP + role)\n'
+	@printf '    edit .env  (backend IPs + VIP + role)\n'
 	@printf '    sudo make setup            # first-time full install\n'
 	@printf '    sudo make apply            # after editing .env (re-render + reload)\n\n'
 	@printf 'Targets:\n'
@@ -34,7 +34,7 @@ init: ## Create .env from .env.example
 		echo ".env already exists"; \
 	else \
 		cp .env.example "$(SETUP_ENV)"; \
-		echo "Created .env — edit BACKEND_1/2/3, VIP, ROLE, then: sudo make setup"; \
+		echo "Created .env — edit backend IPs, VIP, ROLE, then: sudo make setup"; \
 	fi
 
 setup: ## Full A-Z production setup (install, configure, validate, preflight)
