@@ -78,7 +78,12 @@ On cloud providers, use `/32` for floating/reserved IPs (`VIP_PREFIX=32` in `.en
 
 ### VIP equals node primary IP (single node / address owner)
 
-When the VIP is the same as this host's primary IP on `INTERFACE` (typical single Vultr instance), Keepalived must use **priority 255** (VRRP address owner). `render-config.sh` sets this automatically. Without it, Keepalived enters FAULT: `no IPv4 address for interface`.
+When the VIP is the same as this host's primary IP on `INTERFACE` (typical single Vultr instance), `render-config.sh` automatically:
+
+1. Sets **priority 255** (VRRP address owner) and drops the `vrrp_script` weight (weighted tracking is invalid for address owner)
+2. Pins the VRRP source with `mcast_src_ip <NODE_IP>` so Keepalived does not scan the interface for a source address
+
+Without the pinned source, Keepalived ignores the VIP as an advert source and enters FAULT: `no IPv4 address for interface`.
 
 ### Cloud HA (unicast VRRP)
 

@@ -120,6 +120,9 @@ resolve_keepalived_vrrp() {
         VRRP_SCRIPT_WEIGHT="weight -20"
     fi
 
+    # Always pin the VRRP source IP. This sets it from config, so Keepalived does
+    # not scan the interface for a source address. Critical when VIP == NODE_IP:
+    # otherwise Keepalived ignores the VIP and faults with "no IPv4 address".
     KEEPALIVED_UNICAST_SNIP="${RENDER_DIR}/.keepalived-unicast.snip"
     if [[ -n "${VRRP_PEER}" ]]; then
         cat > "${KEEPALIVED_UNICAST_SNIP}" <<EOF
@@ -130,7 +133,8 @@ resolve_keepalived_vrrp() {
 EOF
         info "VRRP unicast enabled: ${NODE_IP} <-> ${VRRP_PEER}"
     else
-        : > "${KEEPALIVED_UNICAST_SNIP}"
+        printf '    mcast_src_ip %s\n' "${NODE_IP}" > "${KEEPALIVED_UNICAST_SNIP}"
+        info "VRRP source pinned to ${NODE_IP} (multicast; set VRRP_PEER for cloud HA)"
     fi
 }
 
