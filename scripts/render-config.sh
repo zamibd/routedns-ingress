@@ -152,7 +152,10 @@ render_backend_lines() {
         printf '    server dot%d %s:%s check inter 5s fall 3 rise 2 weight %d%s\n' \
             "$((i + 1))" "${ip}" "${BACKEND_PORT}" "${weight}" "${proxy_flag}"
     done
-    info "Rendered ${n} backend server line(s)"
+    # stdout is redirected into haproxy.cfg by the caller; log to stderr so this
+    # line does not end up in the rendered config (HAProxy would parse the leading
+    # "[" timestamp as a scope declaration and fail).
+    info "Rendered ${n} backend server line(s)" >&2
 }
 
 render_haproxy() {
