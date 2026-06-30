@@ -69,6 +69,34 @@ detect_node_ip() {
         | awk '{print $4}' | cut -d/ -f1 | head -1
 }
 
+# Populates global BACKEND_IPS[] from .env (call after sourcing SETUP_ENV).
+# Use BACKENDS=ip1,ip2,... or BACKEND_1, BACKEND_2, ... (any count).
+load_backend_ips() {
+    local item ip_var ip i
+    BACKEND_IPS=()
+
+    if [[ -n "${BACKENDS:-}" ]]; then
+        local backends_normalized="${BACKENDS//,/ }"
+        for item in ${backends_normalized}; do
+            [[ -n "${item}" ]] && BACKEND_IPS+=("${item}")
+        done
+    else
+        i=1
+        while true; do
+            ip_var="BACKEND_${i}"
+            ip="${!ip_var:-}"
+            [[ -n "${ip}" ]] || break
+            BACKEND_IPS+=("${ip}")
+            i=$((i + 1))
+        done
+    fi
+}
+
+backend_ips_csv() {
+    local IFS=', '
+    echo "${BACKEND_IPS[*]}"
+}
+
 install_keepalived_scripts() {
     local root="${1:-$(script_dir)}"
     install -o root -g root -m 755 "${root}/scripts/healthcheck.sh" /etc/keepalived/healthcheck.sh

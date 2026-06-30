@@ -15,9 +15,10 @@ make init
 Then edit `.env` (the only file you touch):
 
 ```bash
-BACKEND_1=10.0.1.10     # your 3 backend HAProxy servers
+BACKEND_1=10.0.1.10     # backend HAProxy servers (add BACKEND_2, BACKEND_3, ... or use BACKENDS=)
 BACKEND_2=10.0.1.11
 BACKEND_3=10.0.1.12
+# BACKENDS=10.0.1.10,10.0.1.11,10.0.1.12,10.0.1.13
 VIP=10.0.0.100          # Virtual IP clients connect to
 VIP_PREFIX=24
 ROLE=master             # master on primary node, backup on secondary
@@ -60,7 +61,7 @@ sudo make setup
 ## What `make setup` does
 
 1. Installs packages (haproxy, keepalived, socat, rsyslog, logrotate)
-2. Reads `.env` and renders HAProxy + Keepalived configs (3 backends, VIP, VRRP)
+2. Reads `.env` and renders HAProxy + Keepalived configs (backends, VIP, VRRP)
 3. Installs the rendered configs to `/etc`
 4. Applies sysctl, limits, logging
 5. Configures firewall (ssh + 853/tcp)

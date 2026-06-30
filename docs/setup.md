@@ -15,7 +15,7 @@ Creates `.env` from `.env.example` in the project root.
 Minimum required changes:
 
 ```bash
-BACKEND_1=10.0.1.10    # your 3 backend HAProxy servers
+BACKEND_1=10.0.1.10    # backend servers (BACKEND_2, BACKEND_3, ... or BACKENDS=ip1,ip2,...)
 BACKEND_2=10.0.1.11
 BACKEND_3=10.0.1.12
 
@@ -34,6 +34,7 @@ Optional (auto-detected if empty):
 | `NODE_IP` | Auto-detected primary IPv4 on `INTERFACE` |
 | `VRRP_PEER` | Empty (set peer primary IP for cloud unicast VRRP) |
 | `BACKEND_PORT` | 853 |
+| `BACKENDS` | Empty (comma-separated list; overrides `BACKEND_N` when set) |
 | `USE_PROXY_PROTOCOL` | yes |
 | `CONFIGURE_FIREWALL` | yes |
 | `INSTALL_LATEST_PACKAGES` | no (set `yes` for HAProxy 3.4.1 + Keepalived 2.4.1) |
