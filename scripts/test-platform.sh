@@ -22,6 +22,8 @@ keepalived_test_config() {
     sed \
         -e "s/CHANGE_ME_INTERFACE/${iface}/g" \
         -e 's/CHANGE_ME_VRRP_SECRET/testsec1/g' \
+        -e 's/CHANGE_ME_PRIORITY/100/g' \
+        -e '/CHANGE_ME_UNICAST/d' \
         -e 's|CHANGE_ME_VIP/CHANGE_ME_VIP_PREFIX|127.0.0.1/32|g' \
         "${src}" > "${dst}"
     echo "${dst}"

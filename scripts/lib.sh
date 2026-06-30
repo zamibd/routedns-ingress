@@ -63,6 +63,12 @@ detect_interface() {
     echo "${iface:-eth0}"
 }
 
+detect_node_ip() {
+    local iface="${1:-$(detect_interface)}"
+    ip -4 -o addr show dev "${iface}" scope global 2>/dev/null \
+        | awk '{print $4}' | cut -d/ -f1 | head -1
+}
+
 install_keepalived_scripts() {
     local root="${1:-$(script_dir)}"
     install -o root -g root -m 755 "${root}/scripts/healthcheck.sh" /etc/keepalived/healthcheck.sh

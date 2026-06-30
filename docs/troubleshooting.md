@@ -66,6 +66,25 @@ If reload fails, the old config remains active (safe failure).
 
 ## Keepalived
 
+### FAULT state (no IPv4 address for interface)
+
+Keepalived needs an IPv4 on the VRRP interface **different from the VIP** to send adverts — unless this node **owns** the VIP as its primary IP.
+
+**Single node / VIP = server primary IP (common on Vultr):** `render-config.sh` auto-detects this and sets **priority 255** (VRRP address owner). Re-apply:
+
+```bash
+sudo make apply
+journalctl -u keepalived -n 20 | grep -iE 'MASTER|BACKUP|FAULT'
+```
+
+**Two-node HA on cloud (Vultr, GCP, etc.):**
+
+1. VIP should be a **floating/reserved IP**, not each node's primary IP
+2. Set `VIP_PREFIX=32` in `.env` for cloud floating IPs
+3. Set `VRRP_PEER` to the **other node's primary IP** (unicast; multicast is usually blocked)
+
+Then `sudo make apply` on both nodes.
+
 ### VIP not appearing on MASTER
 
 ```bash
