@@ -113,6 +113,13 @@ resolve_keepalived_vrrp() {
         esac
     fi
 
+    # Address owner (priority 255) cannot use weighted track_script — keepalived -t fails.
+    if [[ "${VRRP_PRIORITY}" -eq 255 ]]; then
+        VRRP_SCRIPT_WEIGHT=""
+    else
+        VRRP_SCRIPT_WEIGHT="weight -20"
+    fi
+
     KEEPALIVED_UNICAST_SNIP="${RENDER_DIR}/.keepalived-unicast.snip"
     if [[ -n "${VRRP_PEER}" ]]; then
         cat > "${KEEPALIVED_UNICAST_SNIP}" <<EOF
@@ -172,6 +179,7 @@ render_keepalived() {
         -e "s/CHANGE_ME_INTERFACE/${INTERFACE}/g" \
         -e "s/CHANGE_ME_VRRP_SECRET/${VRRP_SECRET}/g" \
         -e "s/CHANGE_ME_PRIORITY/${VRRP_PRIORITY}/g" \
+        -e "s/CHANGE_ME_SCRIPT_WEIGHT/${VRRP_SCRIPT_WEIGHT}/g" \
         -e "s|CHANGE_ME_VIP/CHANGE_ME_VIP_PREFIX|${VIP}/${VIP_PREFIX}|g" \
         "${src}" | awk -v snip="${KEEPALIVED_UNICAST_SNIP}" '
         /CHANGE_ME_UNICAST/ {
